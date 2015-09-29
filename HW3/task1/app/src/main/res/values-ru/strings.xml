@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hint1">Введите первое число</string>
+    <string name="hint2">Введите второе число</string>
+    <string name="hint_result">Результат</string>
+    <string name="dvb_error">NaN (Деление на ноль)</string>
+</resources>

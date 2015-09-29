@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.homework3.german.task1service">
+
+    <application android:allowBackup="true" android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher" android:theme="@style/AppTheme">
+        <service android:name=".CalculatorService">
+            <intent-filter>
+                <action android:name="homework3.task1.service.START_SERVICE"/>
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

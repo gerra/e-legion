@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">task1</string>
+
+    <string name="hint1">Enter the first number</string>
+    <string name="hint2">Enter the second number</string>
+    <string name="hint_result">Result</string>
+    <string name="dvb_error">NaN (Division by zero)</string>
+
+    <string name="op_mul">*</string>
+    <string name="op_sub">-</string>
+    <string name="op_add">+</string>
+    <string name="op_div">/</string>
+</resources>
