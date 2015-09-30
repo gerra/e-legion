@@ -16,6 +16,9 @@ public class CalculatorService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("CalcService", "OnStartCommand");
+	if (intent == null) {
+		return super.onStartCommand(intent, flags, startId);
+	}
         String operand1AsString = intent.getStringExtra("OPERAND_1");
         String operand2AsString = intent.getStringExtra("OPERAND_2");
         String operation = intent.getStringExtra("OPERATION");
