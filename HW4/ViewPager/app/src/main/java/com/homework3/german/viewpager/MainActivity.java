@@ -1,16 +1,16 @@
 package com.homework3.german.viewpager;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.DrawableRes;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 
 public class MainActivity extends AppCompatActivity {
@@ -49,59 +49,47 @@ public class MainActivity extends AppCompatActivity {
                     icon.setScaleX(1f - position);
                     icon.setScaleY(1f - position);
                 }
+            }
+        });
 
-
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mIconPagerAdapter.getCount() > 1) {
+                    DialogFragment dialog = new DialogFragment() {
+                        @NonNull
+                        @Override
+                        public Dialog onCreateDialog(Bundle savedInstanceState) {
+                            return new AlertDialog.Builder(getActivity(), R.style.AppTheme_Dialog)
+                                    .setTitle(R.string.deletion_confirm_title)
+                                    .setMessage(R.string.deletion_confirm_message)
+                                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            removeCurrentPage();
+                                            if (mIconPagerAdapter.getCount() == 1) {
+                                                fab.hide();
+                                            }
+                                        }
+                                    })
+                                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    }).create();
+                        }
+                    };
+                    dialog.setShowsDialog(true);
+                    dialog.show(getSupportFragmentManager(), "YesNoDialog");
+                }
             }
         });
     }
 
-    public class IconPagerAdapter extends FragmentPagerAdapter {
-
-        public IconPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            switch (position) {
-                case 0:
-                    return PlaceholderFragment.newInstance(R.drawable.android);
-                case 1:
-                    return PlaceholderFragment.newInstance(R.drawable.apple);
-                case 2:
-                    return PlaceholderFragment.newInstance(R.drawable.github);
-                default:
-                    return PlaceholderFragment.newInstance(R.drawable.playmarket);
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return 4;
-        }
-    }
-
-    public static class PlaceholderFragment extends Fragment {
-        private static final String IMAGE_ID = "image_id";
-
-        public static PlaceholderFragment newInstance(@DrawableRes int imageId) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(IMAGE_ID, imageId);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            ImageView icon = (ImageView) rootView.findViewById(R.id.icon);
-            icon.setImageResource(getArguments().getInt(IMAGE_ID));
-            return rootView;
-        }
+    private void removeCurrentPage() {
+        int currentItem = mViewPager.getCurrentItem();
+        mIconPagerAdapter.removePage(currentItem);
     }
 }
