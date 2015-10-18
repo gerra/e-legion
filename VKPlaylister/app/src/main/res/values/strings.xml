@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">VKPlaylister</string>
+    <string name="action_settings">Settings</string>
+    <integer name="com_vk_sdk_AppId">5107012</integer>
+
+    <plurals name="items_count">
+        <item quantity="many">%d items</item>
+        <item quantity="one">%d item</item>
+    </plurals>
+</resources>
