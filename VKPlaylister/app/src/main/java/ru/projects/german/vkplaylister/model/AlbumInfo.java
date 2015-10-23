@@ -1,11 +1,13 @@
 package ru.projects.german.vkplaylister.model;
 
+import java.io.Serializable;
+
 /**
  * Created on 18.10.15.
  *
  * @author German Berezhko, gerralizza@gmail.com
  */
-public class AlbumInfo {
+public class AlbumInfo implements Serializable {
     private String title;
     private int size;
     /**

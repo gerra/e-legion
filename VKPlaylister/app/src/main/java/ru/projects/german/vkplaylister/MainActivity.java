@@ -41,12 +41,23 @@ public class MainActivity extends AppCompatActivity {
         if (addToBackStack) {
             ft.addToBackStack(null);
         }
-        ft.replace(R.id.container, fragment, AuthorizeFragment.TAG).commit();
-
+        ft.replace(R.id.container, fragment).commit();
     }
 
     public void openFragment(Fragment fragment) {
         openFragment(fragment, false);
+    }
+
+    public void closeLastFragment() {
+        getSupportFragmentManager()
+                .popBackStackImmediate();
+    }
+
+    public void closeFragment(Fragment fragment) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .remove(fragment)
+                .commit();
     }
 
     private void launchLoginFragment() {

@@ -3,18 +3,25 @@ package ru.projects.german.vkplaylister.model;
 import com.vk.sdk.api.model.VKApiAudio;
 import com.vk.sdk.api.model.VkAudioArray;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Created on 18.10.15.
  *
  * @author German Berezhko, gerralizza@gmail.com
  */
-public class Audio {
+public class Audio implements Serializable {
     public static class AudioList extends ArrayList<Audio> {
         public AudioList() {
             super();
         }
+
+        public AudioList(Collection<? extends Audio> collection) {
+            super(collection);
+        }
+
         public AudioList(VkAudioArray vkAudios) {
             super();
             for (VKApiAudio vkAudio : vkAudios) {

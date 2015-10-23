@@ -84,6 +84,10 @@ public class Album implements Serializable {
         this.audios = audios;
     }
 
+    public boolean isSynchronizedWithVk() {
+        return synchronizedWithVk;
+    }
+
     public void setSynchronizedWithVk(boolean synchronizedWithVk) {
         this.synchronizedWithVk = synchronizedWithVk;
     }

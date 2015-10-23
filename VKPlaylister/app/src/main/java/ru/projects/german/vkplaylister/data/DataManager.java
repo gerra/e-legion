@@ -11,6 +11,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Set;
+
 import ru.projects.german.vkplaylister.Constants;
 import ru.projects.german.vkplaylister.VkHelper;
 import ru.projects.german.vkplaylister.model.Album;
@@ -69,6 +71,7 @@ public class DataManager {
                         Album currentAlbum = new Album(item.getString("title"));
                         currentAlbum.setVkId(Integer.parseInt(item.getString("id")));
                         currentAlbum.setVkOwnerId(Integer.parseInt(item.getString("owner_id")));
+                        currentAlbum.setSynchronizedWithVk(true);
                         albums.add(currentAlbum);
                     }
                 } catch (JSONException e) {
@@ -89,5 +92,9 @@ public class DataManager {
             album.setTotalCount(audios.getCount());
         }
         return albums;
+    }
+
+    public static Album createAlbum(String title, Set<Audio> audios) {
+        return new Album(title, new Audio.AudioList(audios));
     }
 }

@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import ru.projects.german.vkplaylister.MainActivity;
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.adapter.BaseAudioListAdapter;
@@ -52,7 +53,16 @@ public abstract class BaseAudiosFragment extends Fragment implements LoaderManag
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "AudioListLoader in lm: " + (getLoaderManager().getLoader(R.id.audios_loader) != null));
-        getLoaderManager().initLoader(R.id.audios_loader, getArguments(), this);
+        Bundle args = getArguments();
+        Album album = null;
+        if (args != null) {
+            album = (Album) args.getSerializable(ALBUM_KEY);
+        }
+        if (album == null || album.isSynchronizedWithVk()) {
+            getLoaderManager().initLoader(R.id.audios_loader, getArguments(), this);
+        } else {
+            updateAudiosInAdapter(album.getAudios());
+        }
     }
 
     @Nullable
@@ -72,13 +82,22 @@ public abstract class BaseAudiosFragment extends Fragment implements LoaderManag
     @Override
     public void onResume() {
         super.onResume();
-        audioList.addOnItemTouchListener(onItemClickListener);
+        if (onItemClickListener != null) {
+            audioList.addOnItemTouchListener(onItemClickListener);
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        audioList.removeOnItemTouchListener(onItemClickListener);
+        if (onItemClickListener != null) {
+            audioList.removeOnItemTouchListener(onItemClickListener);
+        }
+    }
+
+    private void updateAudiosInAdapter(Audio.AudioList audios) {
+        Log.d(TAG, "updateAudiosInAdapter()");
+        adapter.addAudios(audios);
     }
 
     @Override
@@ -98,12 +117,16 @@ public abstract class BaseAudiosFragment extends Fragment implements LoaderManag
     public void onLoadFinished(Loader<Audio.AudioList> loader, Audio.AudioList data) {
         if (data != null) {
             Log.d(TAG, "Audios were gotten, size = " + data.size());
-            adapter.addAudios(data);
+            updateAudiosInAdapter(data);
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Audio.AudioList> loader) {
         Log.d(TAG, "onLoaderReset");
+    }
+
+    public MainActivity getMainActivity() {
+        return (MainActivity) getActivity();
     }
 }
