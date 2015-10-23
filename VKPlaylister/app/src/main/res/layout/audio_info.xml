@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/title"
+        android:text="Title"
+        style="?android:textColorPrimary"
+        android:singleLine="true"
+        android:textSize="@dimen/audio_info_artist_text_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/artist"
+        android:text="Artist"
+        style="?android:textColorSecondary"
+        android:singleLine="true"
+        android:textSize="@dimen/audio_info_title_text_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>

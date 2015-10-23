@@ -2,8 +2,6 @@ package ru.projects.german.vkplaylister.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,18 +21,8 @@ import ru.projects.german.vkplaylister.model.Audio;
 /**
  * Created by root on 14.10.15.
  */
-public class AudiosFragment extends Fragment implements LoaderManager.LoaderCallbacks<Audio.AudioList> {
+public class AudiosFragment extends BaseAudiosFragment {
     private static final String TAG = AudiosFragment.class.getSimpleName();
-    private static final String ALBUM_KEY = "ALBUM_KEY";
-
-    private RecyclerView audioList;
-    private AudioListAdapter adapter;
-    private RecyclerItemClickListener onItemClickListener;
-
-    public static AudiosFragment newInstance() {
-        AudiosFragment fragment = new AudiosFragment();
-        return fragment;
-    }
 
     public static AudiosFragment newInstance(Album album) {
         AudiosFragment fragment = new AudiosFragment();
@@ -45,20 +33,27 @@ public class AudiosFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     @Override
+    protected void initAdapter() {
+        adapter = new AudioListAdapter();
+    }
+
+    @Override
+    protected void initOnItemClickListener() {
+        onItemClickListener = new RecyclerItemClickListener(TheApp.getApp(), new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public boolean onItemClick(View view, int position) {
+                Log.d(TAG, adapter.getItem(position).getTitle() + ", view id=" + view.getId());
+                return true;
+            }
+        });
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        if (adapter == null) {
-            adapter = new AudioListAdapter();
-        }
-        if (onItemClickListener == null) {
-            onItemClickListener = new RecyclerItemClickListener(TheApp.getApp(), new RecyclerItemClickListener.OnItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    Log.d(TAG, adapter.getItem(position).getTitle());
-                }
-            });
-        }
+        initAdapter();
+        initOnItemClickListener();
     }
 
     @Override

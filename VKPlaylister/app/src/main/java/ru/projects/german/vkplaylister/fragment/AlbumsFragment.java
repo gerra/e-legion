@@ -1,0 +1,124 @@
+package ru.projects.german.vkplaylister.fragment;
+
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import ru.projects.german.vkplaylister.MainActivity;
+import ru.projects.german.vkplaylister.R;
+import ru.projects.german.vkplaylister.TheApp;
+import ru.projects.german.vkplaylister.adapter.LocalAlbumListAdapter;
+import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
+import ru.projects.german.vkplaylister.loader.AlbumListLoader;
+import ru.projects.german.vkplaylister.model.Album;
+
+/**
+ * Created on 17.10.15.
+ *
+ * @author German Berezhko, gerralizza@gmail.com
+ */
+public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Album.AlbumList> {
+    private static final String TAG = AlbumsFragment.class.getSimpleName();
+
+    private RecyclerView albumList;
+    private LocalAlbumListAdapter adapter;
+    private RecyclerItemClickListener onItemClickListener;
+    private FloatingActionButton addAlbumButton;
+
+    public static AlbumsFragment newInstance() {
+        AlbumsFragment fragment = new AlbumsFragment();
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+        if (adapter == null) {
+            adapter = new LocalAlbumListAdapter();
+        }
+        if (onItemClickListener == null) {
+            onItemClickListener = new RecyclerItemClickListener(TheApp.getApp(), new RecyclerItemClickListener.OnItemClickListener() {
+                @Override
+                public boolean onItemClick(View view, int position) {
+                    Album album = adapter.getItem(position);
+                    Log.d(TAG, "Clicked album " + album.getTitle());
+                    ((MainActivity) getActivity()).openFragment(AudiosFragment.newInstance(album), true);
+                    return true;
+                }
+
+                @Override
+                public boolean onItemLongPress(View view, int position) {
+                    Album album = adapter.getItem(position);
+                    Log.d(TAG, "Long press on album " + album.getTitle());
+                    return true;
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        albumList.addOnItemTouchListener(onItemClickListener);
+        addAlbumButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((MainActivity) getActivity()).openFragment(SelectAudiosFragment.newInstance(), true);
+            }
+        });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        albumList.removeOnItemTouchListener(onItemClickListener);
+        addAlbumButton.setOnClickListener(null);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        getLoaderManager().initLoader(R.id.albums_loader, null, this);
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_albums, container, false);
+        addAlbumButton = (FloatingActionButton) view.findViewById(R.id.add_album_fab);
+        albumList = (RecyclerView) view.findViewById(R.id.album_list);
+        albumList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        albumList.setAdapter(adapter);
+        return view;
+    }
+
+    @Override
+    public Loader<Album.AlbumList> onCreateLoader(int id, Bundle args) {
+        if (id == R.id.albums_loader) {
+            Log.d(TAG, "onCreateLoader");
+            return new AlbumListLoader(TheApp.getApp());
+        }
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Album.AlbumList> loader, Album.AlbumList data) {
+        Log.d(TAG, "onLoadFinished");
+        adapter.addAlbums(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Album.AlbumList> loader) {
+        Log.d(TAG, "onLoaderReset");
+    }
+}

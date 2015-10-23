@@ -16,7 +16,7 @@ import ru.projects.german.vkplaylister.model.Audio;
 
 public class AudioListLoader extends SimpleCacheLoader<Audio.AudioList> {
 
-    public AudioListLoader(Context context, final Album album) {
+    public AudioListLoader(Context context, final Album album, final int count, final int offset) {
         super(context, new VkRequestResponseHelper<Audio.AudioList>() {
             @Override
             public VKRequest createRequest() {
@@ -24,8 +24,8 @@ public class AudioListLoader extends SimpleCacheLoader<Audio.AudioList> {
                         album != null ? album.getVkOwnerId() : Integer.parseInt(VKAccessToken.currentToken().userId),
                         album != null ? album.getVkId() : -1,
                         false,
-                        0,
-                        10
+                        offset,
+                        count
                 );
                 return request;
             }
@@ -45,55 +45,11 @@ public class AudioListLoader extends SimpleCacheLoader<Audio.AudioList> {
         }
     }
 
+    public AudioListLoader(Context context, final Album album) {
+        this(context, album, 0, 0);
+    }
+
     public AudioListLoader(Context context) {
         this(context, null);
     }
-//    private static final String TAG = AudioListLoader.class.getSimpleName();
-//    private static final int LOADED_DATA_TIME_EXPIRED = 30 * 1000; // 30 seconds
-//
-//    private static VkAudioArray cachedArray;
-//    private static long lastDownloadTime = -1;
-//
-//    public AudioListLoader(Context context) {
-//        super(context);
-//    }
-//
-//    private boolean cacheIsExpired() {
-//        if (lastDownloadTime == -1) {
-//            return true;
-//        }
-//        return System.currentTimeMillis() - lastDownloadTime > LOADED_DATA_TIME_EXPIRED;
-//    }
-//
-//    @Override
-//    public VkAudioArray loadInBackground() {
-//        Log.d(TAG, "loadInBackground");
-//        VKParameters params = new VKParameters();
-//        params.put(VKApiConst.OWNER_ID, VKAccessToken.currentToken().userId);
-//        params.put(VKApiConst.COUNT, "10");
-//        VKRequest request = new VKRequest("audio.get", params);
-//        request.executeSyncWithListener(new VKRequest.VKRequestListener() {
-//            @Override
-//            public void onComplete(VKResponse response) {
-//                try {
-//                    cachedArray = (VkAudioArray) new VkAudioArray().parse(response.json);
-//                    lastDownloadTime = System.currentTimeMillis();
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-//        return cachedArray;
-//    }
-//
-//    @Override
-//    protected void onStartLoading() {
-//        Log.d(TAG, "onStartLoading");
-//        if (cachedArray != null) {
-//            deliverResult(cachedArray);
-//        }
-//        if (cachedArray == null || takeContentChanged() || cacheIsExpired()) {
-//            forceLoad();
-//        }
-//    }
 }
