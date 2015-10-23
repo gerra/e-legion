@@ -20,6 +20,7 @@
 
         <ImageView
             android:id="@+id/add_audio"
+            android:layout_marginRight="@dimen/small_margin"
             android:layout_gravity="center_vertical"
             android:layout_width="@dimen/audio_item_add_size"
             android:layout_height="@dimen/audio_item_add_size"

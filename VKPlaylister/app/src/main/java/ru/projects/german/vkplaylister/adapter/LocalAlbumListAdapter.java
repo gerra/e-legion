@@ -22,7 +22,7 @@ public class LocalAlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder>
 
     @Override
     public AlbumViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_playlist, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_album, parent, false);
         return new AlbumViewHolder(view);
     }
 
