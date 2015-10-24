@@ -11,8 +11,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Set;
-
 import ru.projects.german.vkplaylister.Constants;
 import ru.projects.german.vkplaylister.VkHelper;
 import ru.projects.german.vkplaylister.model.Album;
@@ -57,7 +55,7 @@ public class DataManager {
         VKParameters params = new VKParameters();
         params.put(VKApiConst.OWNER_ID, VKAccessToken.currentToken().userId);
         params.put(VKApiConst.COUNT, "10");
-        VKRequest albumsRequest = new VKRequest(Constants.VK_ALBUMS_GET, params);
+        VKRequest albumsRequest = new VKRequest(Constants.VK_AUDIOS_GET_ALBUMS, params);
 
         final Album.AlbumList albums = new Album.AlbumList();
 
@@ -79,22 +77,49 @@ public class DataManager {
                 }
             }
         });
-
-        for (Album album : albums) {
-            VkAudioArray audios = getAudiosFromNet(
-                    album.getVkOwnerId(),
-                    album.getVkId(),
-                    false,
-                    0,
-                    1
-            );
-            album.setAudios(new Audio.AudioList(audios));
-            album.setTotalCount(audios.getCount());
+        if (albums != null) {
+            for (Album album : albums) {
+                VkAudioArray audios = getAudiosFromNet(
+                        album.getVkOwnerId(),
+                        album.getVkId(),
+                        false,
+                        0,
+                        1
+                );
+                if (audios != null) {
+                    album.setAudios(new Audio.AudioList(audios));
+                    album.setTotalCount(audios.getCount());
+                }
+            }
         }
         return albums;
     }
 
-    public static Album createAlbum(String title, Set<Audio> audios) {
-        return new Album(title, new Audio.AudioList(audios));
+    public static void uploadAlbum(Album album) {
+        
+    }
+
+    public static void createAlbumByTitleAndGetId(String title, VKRequest.VKRequestListener listener) {
+        VKParameters params = new VKParameters();
+        params.put(Constants.VK_ALBUM_TITLE, title);
+        VKRequest request = new VKRequest(Constants.VK_AUDIOS_ADD_ALBUM, params);
+        request.executeWithListener(listener);
+    }
+
+    public static void loadAlbumToNet(Album album, VKRequest.VKRequestListener listener) {
+        String audioIds = "";
+        Audio.AudioList audios = album.getAudios();
+        for (int i = 0; i < audios.size(); i++) {
+            Audio audio = audios.get(i);
+            if (i != 0) {
+                audioIds += ",";
+            }
+            audioIds += audio.getId();
+        }
+        VKParameters params = new VKParameters();
+        params.put(Constants.VK_ALBUM_ID, album.getVkId());
+        params.put(Constants.VK_ALBUM_AUDIO_IDS, audioIds);
+        VKRequest request = new VKRequest(Constants.VK_AUDIOS_MOVE_TO_ALBUM, params);
+        request.executeWithListener(listener);
     }
 }

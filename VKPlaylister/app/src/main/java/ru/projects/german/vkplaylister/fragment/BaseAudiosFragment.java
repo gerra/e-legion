@@ -12,9 +12,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import ru.projects.german.vkplaylister.MainActivity;
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.TheApp;
+import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.adapter.BaseAudioListAdapter;
 import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
 import ru.projects.german.vkplaylister.loader.AudioListLoader;
@@ -26,7 +26,8 @@ import ru.projects.german.vkplaylister.model.Audio;
  *
  * @author German Berezhko, gerralizza@gmail.com
  */
-public abstract class BaseAudiosFragment extends Fragment implements LoaderManager.LoaderCallbacks<Audio.AudioList> {
+public abstract class BaseAudiosFragment extends Fragment
+        implements LoaderManager.LoaderCallbacks<Audio.AudioList>, HasTitle {
     private static final String TAG = BaseAudiosFragment.class.getSimpleName();
     protected static final String ALBUM_KEY = "ALBUM_KEY";
 

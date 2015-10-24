@@ -11,8 +11,8 @@ import android.view.ViewGroup;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.model.VKScopes;
 
-import ru.projects.german.vkplaylister.MainActivity;
 import ru.projects.german.vkplaylister.R;
+import ru.projects.german.vkplaylister.activity.MainActivity;
 
 /**
  * Created by root on 14.10.15.

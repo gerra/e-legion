@@ -3,19 +3,21 @@ package ru.projects.german.vkplaylister.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import ru.projects.german.vkplaylister.MainActivity;
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.TheApp;
+import ru.projects.german.vkplaylister.activity.AlbumTitleDialogFragment;
+import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.adapter.LocalAlbumListAdapter;
 import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
 import ru.projects.german.vkplaylister.loader.AlbumListLoader;
@@ -73,7 +75,9 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
         addAlbumButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity) getActivity()).openFragment(SelectAudiosFragment.newInstance(), true);
+                DialogFragment dialog = new AlbumTitleDialogFragment();
+                dialog.setShowsDialog(true);
+                dialog.show(getFragmentManager(), AlbumTitleDialogFragment.TAG);
             }
         });
     }
@@ -97,7 +101,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
         View view = inflater.inflate(R.layout.fragment_albums, container, false);
         addAlbumButton = (FloatingActionButton) view.findViewById(R.id.add_album_fab);
         albumList = (RecyclerView) view.findViewById(R.id.album_list);
-        albumList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        albumList.setLayoutManager(new GridLayoutManager(getActivity(), 2));
         albumList.setAdapter(adapter);
         return view;
     }

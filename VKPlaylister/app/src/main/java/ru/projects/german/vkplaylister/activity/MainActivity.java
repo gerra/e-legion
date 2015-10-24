@@ -1,4 +1,4 @@
-package ru.projects.german.vkplaylister;
+package ru.projects.german.vkplaylister.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,8 +17,10 @@ import com.vk.sdk.api.VKError;
 
 import java.util.Stack;
 
+import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.fragment.AlbumsFragment;
 import ru.projects.german.vkplaylister.fragment.AuthorizeFragment;
+import ru.projects.german.vkplaylister.fragment.HasTitle;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -38,19 +40,11 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 launchAfterLoginFragment();
             }
-        } else {
+        }
+        Object object = getLastCustomNonConfigurationInstance();
+        if (object != null && object instanceof Stack) {
             fragmentStack = (Stack<Fragment>) getLastCustomNonConfigurationInstance();
         }
-//        getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-//            @Override
-//            public void onBackStackChanged() {
-//                FragmentManager fm = getSupportFragmentManager();
-//                Log.d(TAG, "BackStackEntryCount=" + fm.getBackStackEntryCount());
-//                for (int i = 0; i < fm.getBackStackEntryCount(); i++) {
-//                    Log.d(TAG, "BackStackEntry at " + i + " " + fm.getBackStackEntryAt(i).getName());
-//                }
-//            }
-//        });
     }
 
     @Override
@@ -58,20 +52,27 @@ public class MainActivity extends AppCompatActivity {
         return fragmentStack;
     }
 
-    public void openFragment(Fragment fragment, boolean addToBackStack) {
+    private void updateTitle() {
+        Fragment fragment = fragmentStack.peek();
+        if (fragment instanceof HasTitle) {
+            getSupportActionBar().setTitle(((HasTitle) fragment).getTitle());
+        } else {
+            getSupportActionBar().setTitle(R.string.app_name);
+        }
+    }
+
+    public void openFragment(Fragment fragment, boolean addFragmentToBackStack) {
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        if (addToBackStack) {
-            ft.add(R.id.container, fragment);
-            fragmentStack.push(fragment);
-        } else {
+        if (!addFragmentToBackStack) {
             if (fragmentStack.size() > 0) {
                 ft.remove(fragmentStack.pop());
             }
-            ft.add(R.id.container, fragment);
-            fragmentStack.push(fragment);
         }
+        ft.add(R.id.container, fragment);
+        fragmentStack.push(fragment);
         ft.commit();
+        updateTitle();
     }
 
     public void openFragment(Fragment fragment) {
@@ -109,9 +110,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK && fragmentStack.size() > 1) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
             Log.d(TAG, "Back button pressed");
-            getSupportFragmentManager().beginTransaction().remove(fragmentStack.pop()).commit();
+            if (fragmentStack.size() > 1) {
+                getSupportFragmentManager().beginTransaction().remove(fragmentStack.pop()).commit();
+                updateTitle();
+            } else {
+                finish();
+            }
             return true;
         }
         return false;

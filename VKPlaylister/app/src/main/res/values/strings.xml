@@ -6,5 +6,13 @@
     <plurals name="items_count">
         <item quantity="many">%d items</item>
         <item quantity="one">%d item</item>
+        <item quantity="few">%d items</item>
     </plurals>
+
+    <string name="create_album_dialog_wait_title">Please wait...</string>
+    <string name="create_album_dialog_wait_message">Creating empty album...</string>
+    <string name="create_album_dialog_title">Create playlist</string>
+    <string name="create_album_dialog_message">Enter playlist name</string>
+    <string name="create_album_dialog_positive">Continue</string>
+    <string name="create_album_dialog_negative">Cancel</string>
 </resources>

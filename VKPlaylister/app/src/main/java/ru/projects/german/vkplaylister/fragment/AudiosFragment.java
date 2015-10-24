@@ -48,4 +48,11 @@ public class AudiosFragment extends BaseAudiosFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_audios, container, false);
     }
+
+    @Override
+    public CharSequence getTitle() {
+        Album album = getArguments() != null ? (Album) getArguments().getSerializable(ALBUM_KEY)
+                : null;
+        return album != null ? album.getTitle() : null;
+    }
 }
