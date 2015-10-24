@@ -72,7 +72,7 @@ public abstract class SimpleCacheLoader<R> extends AsyncTaskLoader<R> {
 
     @Override
     protected void onStartLoading() {
-        Log.d(TAG, "onStartLoading");
+        Log.d(TAG, "onStartLoading " + hashCode());
         if (cachedResult != null) {
             deliverResult(cachedResult);
         }

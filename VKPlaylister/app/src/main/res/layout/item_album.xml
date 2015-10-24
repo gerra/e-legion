@@ -6,7 +6,7 @@
     android:layout_height="100dp"
     card_view:cardBackgroundColor="@color/colorLightPrimary"
     card_view:cardCornerRadius="0dp"
-    card_view:cardElevation="10dp">
+    card_view:cardElevation="0dp">
 
     <TextView
         android:id="@+id/title"
