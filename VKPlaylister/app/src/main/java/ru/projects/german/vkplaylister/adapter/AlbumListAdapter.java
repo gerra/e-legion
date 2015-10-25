@@ -15,8 +15,8 @@ import ru.projects.german.vkplaylister.model.Album;
  *
  * @author German Berezhko, gerralizza@gmail.com
  */
-public class LocalAlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
-    private static final String TAG = LocalAlbumListAdapter.class.getSimpleName();
+public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
+    private static final String TAG = AlbumListAdapter.class.getSimpleName();
 
     private Album.AlbumList albums = new Album.AlbumList();
 
@@ -47,7 +47,7 @@ public class LocalAlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder>
         Log.d(TAG, "added " + newAlbumsToAdd.size() + " albums");
         int oldSize = albums.size();
         albums.addAll(newAlbumsToAdd);
-        notifyItemRangeInserted(oldSize, albums.size());
+        notifyItemRangeInserted(oldSize, albums.size() - oldSize);
     }
 
     public Album getItem(int position) {

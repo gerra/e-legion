@@ -16,9 +16,8 @@ import android.view.ViewGroup;
 
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.TheApp;
-import ru.projects.german.vkplaylister.activity.AlbumTitleDialogFragment;
 import ru.projects.german.vkplaylister.activity.MainActivity;
-import ru.projects.german.vkplaylister.adapter.LocalAlbumListAdapter;
+import ru.projects.german.vkplaylister.adapter.AlbumListAdapter;
 import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
 import ru.projects.german.vkplaylister.loader.AlbumListLoader;
 import ru.projects.german.vkplaylister.model.Album;
@@ -32,7 +31,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
     private static final String TAG = AlbumsFragment.class.getSimpleName();
 
     private RecyclerView albumList;
-    private LocalAlbumListAdapter adapter;
+    private AlbumListAdapter adapter;
     private RecyclerItemClickListener onItemClickListener;
     private FloatingActionButton addAlbumButton;
 
@@ -46,7 +45,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         if (adapter == null) {
-            adapter = new LocalAlbumListAdapter();
+            adapter = new AlbumListAdapter();
         }
         if (onItemClickListener == null) {
             onItemClickListener = new RecyclerItemClickListener(TheApp.getApp(), new RecyclerItemClickListener.OnItemClickListener() {
@@ -54,7 +53,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
                 public boolean onItemClick(View view, int position) {
                     Album album = adapter.getItem(position);
                     Log.d(TAG, "Clicked album " + album.getTitle());
-                    ((MainActivity) getActivity()).openFragment(AudiosFragment.newInstance(album), true);
+                    ((MainActivity) getActivity()).openFragment(AlbumFragment.newInstance(album), true);
                     return true;
                 }
 
@@ -117,8 +116,10 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onLoadFinished(Loader<Album.AlbumList> loader, Album.AlbumList data) {
-        Log.d(TAG, "onLoadFinished");
-        adapter.addAlbums(data);
+        if (loader.getId() == R.id.albums_loader) {
+            Log.d(TAG, "onLoadFinished");
+            adapter.addAlbums(data);
+        }
     }
 
     @Override

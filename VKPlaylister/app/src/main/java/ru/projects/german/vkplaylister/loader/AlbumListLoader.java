@@ -12,25 +12,28 @@ import ru.projects.german.vkplaylister.model.Album;
  * @author German Berezhko, gerralizza@gmail.com
  */
 public class AlbumListLoader extends AsyncTaskLoader<Album.AlbumList> {
+    private static final int ALBUMS_PER_REQUEST = 50;
+
+    private LoadingListener loadingListener;
+    private int currentOffset;
+
     public AlbumListLoader(Context context) {
         super(context);
     }
 
-    Album.AlbumList cachedAlbumList;
-
     @Override
     public Album.AlbumList loadInBackground() {
-        return cachedAlbumList = DataManager.getAlbumList();
+        Album.AlbumList albums = DataManager.getAlbumList(ALBUMS_PER_REQUEST, currentOffset);
+        return albums;
     }
 
+    public void loadMoreAlbums(int offset) {
+        currentOffset = offset;
+        super.forceLoad();
+    }
 
     @Override
     protected void onStartLoading() {
-        if (cachedAlbumList != null) {
-            deliverResult(cachedAlbumList);
-        }
-        if (cachedAlbumList == null || takeContentChanged()) {
-            forceLoad();
-        }
+        loadMoreAlbums(currentOffset);
     }
 }

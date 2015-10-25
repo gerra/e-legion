@@ -11,27 +11,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.vk.sdk.VKAccessToken;
-import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKRequest;
-import com.vk.sdk.api.VKResponse;
-
 import java.util.Set;
 
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
 import ru.projects.german.vkplaylister.adapter.SelectAudioAdapter;
-import ru.projects.german.vkplaylister.data.DataManager;
-import ru.projects.german.vkplaylister.model.Album;
 import ru.projects.german.vkplaylister.model.Audio;
 
 /**
- * Created on 22.10.15.
+ * Created on 25.10.15.
  *
  * @author German Berezhko, gerralizza@gmail.com
  */
-public class CreateAlbumFragment extends SelectAudiosFragment {
+public abstract class SelectAudiosFragment extends BaseAudiosFragment {
     private static final String TAG = CreateAlbumFragment.class.getSimpleName();
     private static final String ALBUM_TITLE_KEY = "ALBUM_TITLE_KEY";
     private static final String ALBUM_VK_ID_KEY = "ALBUM_VK_ID_KEY";
@@ -53,6 +46,12 @@ public class CreateAlbumFragment extends SelectAudiosFragment {
 
     private String getAlbumTitle() {
         return getArguments().getString(ALBUM_TITLE_KEY);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -92,32 +91,7 @@ public class CreateAlbumFragment extends SelectAudiosFragment {
         showSelectedAudiosButton = (FloatingActionButton) view.findViewById(R.id.show_selected_audios);
     }
 
-    @Override
-    protected void onSelectionFinished(Set<Audio> selectedAudios) {
-        final Album createdAlbum = new Album(getAlbumTitle(), new Audio.AudioList(selectedAudios));
-        createdAlbum.setSynchronizedWithVk(true);
-        createdAlbum.setVkId(getArguments().getInt(ALBUM_VK_ID_KEY));
-        createdAlbum.setVkOwnerId(Integer.parseInt(VKAccessToken.currentToken().userId));
-        createdAlbum.setTotalCount(selectedAudios.size());
-
-        final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
-                getResources().getString(R.string.dialog_wait_title),
-                getResources().getString(R.string.add_audios_to_album_wait_message, createdAlbum.getTitle()));
-        progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
-        DataManager.loadAlbumToNet(createdAlbum, new VKRequest.VKRequestListener() {
-            @Override
-            public void onComplete(VKResponse response) {
-                getMainActivity().openFragment(AlbumFragment.newInstance(createdAlbum, true));
-                progressDialog.dismiss();
-            }
-
-            @Override
-            public void onError(VKError error) {
-                Log.e(TAG, error.toString());
-                progressDialog.dismiss();
-            }
-        });
-    }
+    protected abstract void onSelectionFinished(Set<Audio> selectedAudios);
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -139,3 +113,4 @@ public class CreateAlbumFragment extends SelectAudiosFragment {
         return getAlbumTitle();
     }
 }
+

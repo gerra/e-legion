@@ -8,14 +8,11 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.KeyEvent;
 
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKCallback;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.VKError;
-
-import java.util.Stack;
 
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.fragment.AlbumsFragment;
@@ -25,7 +22,7 @@ import ru.projects.german.vkplaylister.fragment.HasTitle;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private Stack<Fragment> fragmentStack = new Stack<>();
+    private FragmentManager.OnBackStackChangedListener onBackStackChangedListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,19 +38,35 @@ public class MainActivity extends AppCompatActivity {
                 launchAfterLoginFragment();
             }
         }
-        Object object = getLastCustomNonConfigurationInstance();
-        if (object != null && object instanceof Stack) {
-            fragmentStack = (Stack<Fragment>) getLastCustomNonConfigurationInstance();
+        updateTitle();
+        if (onBackStackChangedListener == null) {
+            onBackStackChangedListener = new FragmentManager.OnBackStackChangedListener() {
+                @Override
+                public void onBackStackChanged() {
+                    updateTitle();
+                }
+            };
         }
     }
 
     @Override
-    public Object onRetainCustomNonConfigurationInstance() {
-        return fragmentStack;
+    protected void onResume() {
+        super.onResume();
+        getSupportFragmentManager().addOnBackStackChangedListener(onBackStackChangedListener);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getSupportFragmentManager().removeOnBackStackChangedListener(onBackStackChangedListener);
     }
 
     private void updateTitle() {
-        Fragment fragment = fragmentStack.peek();
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
+        updateTitle(fragment);
+    }
+
+    private void updateTitle(Fragment fragment) {
         if (fragment instanceof HasTitle) {
             getSupportActionBar().setTitle(((HasTitle) fragment).getTitle());
         } else {
@@ -61,18 +74,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void closeCurrentFragment() {
+        getSupportFragmentManager().popBackStackImmediate();
+        updateTitle();
+    }
+
     public void openFragment(Fragment fragment, boolean addFragmentToBackStack) {
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         if (!addFragmentToBackStack) {
-            if (fragmentStack.size() > 0) {
-                ft.remove(fragmentStack.pop());
-            }
+            addFragmentToBackStack = fm.popBackStackImmediate();
         }
-        ft.add(R.id.container, fragment);
-        fragmentStack.push(fragment);
+        if (addFragmentToBackStack) {
+            ft.addToBackStack(null);
+        }
+        ft.replace(R.id.container, fragment);
         ft.commit();
-        updateTitle();
+        updateTitle(fragment);
     }
 
     public void openFragment(Fragment fragment) {
@@ -85,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void launchAfterLoginFragment() {
         openFragment(AlbumsFragment.newInstance());
-//        openFragment(AudiosFragment.newInstance());
     }
 
     @Override
@@ -106,20 +123,5 @@ public class MainActivity extends AppCompatActivity {
         })) {
             super.onActivityResult(requestCode, resultCode, data);
         }
-    }
-
-    @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            Log.d(TAG, "Back button pressed");
-            if (fragmentStack.size() > 1) {
-                getSupportFragmentManager().beginTransaction().remove(fragmentStack.pop()).commit();
-                updateTitle();
-            } else {
-                finish();
-            }
-            return true;
-        }
-        return false;
     }
 }

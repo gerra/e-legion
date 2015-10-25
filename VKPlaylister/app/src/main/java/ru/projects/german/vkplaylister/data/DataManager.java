@@ -1,5 +1,7 @@
 package ru.projects.german.vkplaylister.data;
 
+import android.util.Log;
+
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKParameters;
@@ -51,10 +53,11 @@ public class DataManager {
         return audios[0];
     }
 
-    public static Album.AlbumList getAlbumList() {
+    public static Album.AlbumList getAlbumList(int count, int offset) {
         VKParameters params = new VKParameters();
         params.put(VKApiConst.OWNER_ID, VKAccessToken.currentToken().userId);
-        params.put(VKApiConst.COUNT, "10");
+        params.put(VKApiConst.COUNT, String.valueOf(count));
+        params.put(VKApiConst.OFFSET, String.valueOf(offset));
         VKRequest albumsRequest = new VKRequest(Constants.VK_AUDIOS_GET_ALBUMS, params);
 
         final Album.AlbumList albums = new Album.AlbumList();
@@ -120,6 +123,20 @@ public class DataManager {
         params.put(Constants.VK_ALBUM_ID, album.getVkId());
         params.put(Constants.VK_ALBUM_AUDIO_IDS, audioIds);
         VKRequest request = new VKRequest(Constants.VK_AUDIOS_MOVE_TO_ALBUM, params);
+        request.executeWithListener(listener);
+    }
+
+    public static void removeAlbumFromNet(Album album, VKRequest.VKRequestListener listener) {
+        if (!album.isSynchronizedWithVk()) {
+            Log.e(TAG, "Album " + album.toString() + " is not synchronized with vk");
+            return;
+        }
+        if (album == null) {
+            return;
+        }
+        VKParameters params = new VKParameters();
+        params.put(Constants.VK_ALBUM_ID, album.getVkId());
+        VKRequest request = new VKRequest(Constants.VK_AUDIOS_DELETE_ALBUM, params);
         request.executeWithListener(listener);
     }
 }

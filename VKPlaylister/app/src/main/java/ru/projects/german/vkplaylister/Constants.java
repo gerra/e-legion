@@ -11,6 +11,7 @@ public final class Constants {
     public static final String VK_AUDIOS_ADD_ALBUM = "audio.addAlbum";
     public static final String VK_AUDIOS_GET_ALBUMS = "audio.getAlbums";
     public static final String VK_AUDIOS_MOVE_TO_ALBUM = "audio.moveToAlbum";
+    public static final String VK_AUDIOS_DELETE_ALBUM = "audio.deleteAlbum";
 
     public static final String VK_ALBUM_ID = "album_id";
     public static final String VK_ALBUM_TITLE = "title";

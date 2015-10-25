@@ -1,4 +1,4 @@
-package ru.projects.german.vkplaylister.activity;
+package ru.projects.german.vkplaylister.fragment;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -19,9 +19,8 @@ import org.json.JSONException;
 
 import ru.projects.german.vkplaylister.Constants;
 import ru.projects.german.vkplaylister.R;
+import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.data.DataManager;
-import ru.projects.german.vkplaylister.fragment.CreateAlbumFragment;
-import ru.projects.german.vkplaylister.fragment.ProgressDialogFragment;
 
 /**
  * Created on 24.10.15.
@@ -48,7 +47,7 @@ public class AlbumTitleDialogFragment extends DialogFragment {
                         final String title = editText.getText().toString();
                         final MainActivity mainActivity = (MainActivity) getActivity();
                         final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
-                                getResources().getString(R.string.create_album_dialog_wait_title),
+                                getResources().getString(R.string.dialog_wait_title),
                                 getResources().getString(R.string.create_album_dialog_wait_message)
                         );
                         progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);

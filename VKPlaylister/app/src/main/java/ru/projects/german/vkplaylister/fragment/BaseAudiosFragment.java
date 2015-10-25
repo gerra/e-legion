@@ -13,11 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import ru.projects.german.vkplaylister.R;
+import ru.projects.german.vkplaylister.RecycleViewLoadingScrollListener;
 import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.adapter.BaseAudioListAdapter;
 import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
-import ru.projects.german.vkplaylister.loader.AudioListLoader;
+import ru.projects.german.vkplaylister.loader.LoadingListener;
+import ru.projects.german.vkplaylister.loader.ModernAudioListLoader;
 import ru.projects.german.vkplaylister.model.Album;
 import ru.projects.german.vkplaylister.model.Audio;
 
@@ -30,23 +32,48 @@ public abstract class BaseAudiosFragment extends Fragment
         implements LoaderManager.LoaderCallbacks<Audio.AudioList>, HasTitle {
     private static final String TAG = BaseAudiosFragment.class.getSimpleName();
     protected static final String ALBUM_KEY = "ALBUM_KEY";
+    protected static final String ALBUM_IS_JUST_CREATED_KEY = "ALBUM_IS_JUST_CREATED_KEY";
 
     protected RecyclerView audioList;
     protected BaseAudioListAdapter adapter;
     protected RecyclerItemClickListener onItemClickListener;
+    protected RecyclerView.OnScrollListener onScrollListener;
 
     protected abstract void initAdapter();
     protected abstract void initOnItemClickListener();
+
+    private void initOnScrollListener() {
+        if (onScrollListener == null) {
+            onScrollListener = new RecycleViewLoadingScrollListener(
+                    10,
+                    new RecycleViewLoadingScrollListener.OnLoadListener() {
+                        @Override
+                        public void onLoad(int totalCount) {
+                            if (getAlbum() == null || totalCount != getAlbum().getTotalCount()) {
+                                ModernAudioListLoader loader = (ModernAudioListLoader)
+                                        getLoaderManager().<Audio.AudioList>getLoader(R.id.audios_loader);
+                                if (loader != null && !loader.isRunning()) {
+                                    loader.loadMoreAudios(adapter.getItemCount());
+                                }
+                            }
+                        }
+                    });
+        }
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        setHasOptionsMenu(true);
         if (adapter == null) {
             initAdapter();
         }
         if (onItemClickListener == null) {
             initOnItemClickListener();
+        }
+        if (onScrollListener == null) {
+            initOnScrollListener();
         }
     }
 
@@ -55,12 +82,15 @@ public abstract class BaseAudiosFragment extends Fragment
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "AudioListLoader in lm: " + (getLoaderManager().getLoader(R.id.audios_loader) != null));
         Bundle args = getArguments();
-        Album album = null;
+        Album album = getAlbum();
+        boolean isJustCreated = false;
         if (args != null) {
-            album = (Album) args.getSerializable(ALBUM_KEY);
+            isJustCreated = args.getBoolean(ALBUM_IS_JUST_CREATED_KEY, false);
         }
-        if (album == null || album.isSynchronizedWithVk()) {
-            getLoaderManager().initLoader(R.id.audios_loader, getArguments(), this);
+        if ((album == null || album.isSynchronizedWithVk()) && !isJustCreated) {
+            if (getLoaderManager().getLoader(R.id.audios_loader) == null) {
+                getLoaderManager().initLoader(R.id.audios_loader, getArguments(), this);
+            }
         } else {
             updateAudiosInAdapter(album.getAudios());
         }
@@ -86,6 +116,9 @@ public abstract class BaseAudiosFragment extends Fragment
         if (onItemClickListener != null) {
             audioList.addOnItemTouchListener(onItemClickListener);
         }
+        if (onScrollListener != null) {
+            audioList.addOnScrollListener(onScrollListener);
+        }
     }
 
     @Override
@@ -93,6 +126,9 @@ public abstract class BaseAudiosFragment extends Fragment
         super.onPause();
         if (onItemClickListener != null) {
             audioList.removeOnItemTouchListener(onItemClickListener);
+        }
+        if (onScrollListener != null) {
+            audioList.removeOnScrollListener(onScrollListener);
         }
     }
 
@@ -105,20 +141,25 @@ public abstract class BaseAudiosFragment extends Fragment
     public Loader<Audio.AudioList> onCreateLoader(int id, Bundle args) {
         if (id == R.id.audios_loader) {
             Log.d(TAG, "onCreateLoader");
-            Album album = null;
-            if (args != null) {
-                album = (Album) args.getSerializable(ALBUM_KEY);
-            }
-            return new AudioListLoader(TheApp.getApp(), album, 100, 0);
+            Album album = getAlbum();
+            return new ModernAudioListLoader(TheApp.getApp(), album, new LoadingListener() {
+                @Override
+                public void onStartLoading() {
+                    adapter.addLoadingItem();
+                }
+            });
         }
         return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Audio.AudioList> loader, Audio.AudioList data) {
-        if (data != null) {
-            Log.d(TAG, "Audios were gotten, size = " + data.size());
-            updateAudiosInAdapter(data);
+        if (loader.getId() == R.id.audios_loader) {
+            Log.d(TAG, "onLoadFinished");
+            if (data != null) {
+                Log.d(TAG, "Audios were gotten, size = " + data.size());
+                updateAudiosInAdapter(data);
+            }
         }
     }
 
@@ -129,5 +170,12 @@ public abstract class BaseAudiosFragment extends Fragment
 
     public MainActivity getMainActivity() {
         return (MainActivity) getActivity();
+    }
+
+    protected Album getAlbum() {
+        if (getArguments() != null) {
+            return (Album) getArguments().getSerializable(ALBUM_KEY);
+        }
+        return null;
     }
 }

@@ -1,5 +1,6 @@
 package ru.projects.german.vkplaylister.adapter;
 
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,12 +35,6 @@ public class SelectAudioAdapter extends BaseAudioListAdapter {
         this.onSelectItemListener = onSelectItemListener;
     }
 
-    @Override
-    public SelectAudioViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_audio_for_add, parent, false);
-        return new SelectAudioViewHolder(view);
-    }
-
     public void changeSelectStateAtPosition(int position) {
         Audio item = getItem(position);
         if (selectedAudios.contains(item)) {
@@ -56,49 +51,57 @@ public class SelectAudioAdapter extends BaseAudioListAdapter {
     }
 
     @Override
-    public void onBindViewHolder(final BaseAudioViewHolder holder, final int position) {
+    protected BaseAudioViewHolder getAudioViewHolder(ViewGroup parent) {
+        View view = view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_audio_for_add, parent, false);
+        return new SelectAudioViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         super.onBindViewHolder(holder, position);
-        final boolean isSelected = selectedAudios.contains(getItem(position));
-        final ImageView addButton = ((SelectAudioViewHolder) holder).addAudioButton;
+        if (holder instanceof SelectAudioViewHolder) {
+            final boolean isSelected = selectedAudios.contains(getItem(position));
+            final ImageView addButton = ((SelectAudioViewHolder) holder).addAudioButton;
 //        ((SelectAudioViewHolder) holder).setSelected(selectedAudios.contains(getItem(position)));
-        ((SelectAudioViewHolder) holder).addAudioButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onSelectItemListener.onSelect(v, position);
-            }
-        });
-        if (notAnimatedYet.contains(position)) {
-            ScaleAnimation animation = new ScaleAnimation(1f, 0f, 1f, 1f,
-                    Animation.RELATIVE_TO_SELF, 0.5f,
-                    Animation.RELATIVE_TO_SELF, 0.5f);
-            animation.setDuration(150);
-            animation.setAnimationListener(new Animation.AnimationListener() {
+            ((SelectAudioViewHolder) holder).addAudioButton.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onAnimationStart(Animation animation) {
-
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    ScaleAnimation expandAnimation = new ScaleAnimation(0f, 1f, 1f, 1f,
-                            Animation.RELATIVE_TO_SELF, 0.5f,
-                            Animation.RELATIVE_TO_SELF, 0.5f);
-                    expandAnimation.setDuration(150);
-                    addButton.setImageResource(isSelected ? R.drawable.ic_remove_circle_white_48dp
-                            : R.drawable.ic_add_circle_white_48dp);
-                    addButton.startAnimation(expandAnimation);
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-
+                public void onClick(View v) {
+                    onSelectItemListener.onSelect(v, position);
                 }
             });
-            addButton.startAnimation(animation);
-            notAnimatedYet.remove(position);
-        } else {
-            addButton.setImageResource(isSelected ? R.drawable.ic_remove_circle_white_48dp
-                    : R.drawable.ic_add_circle_white_48dp);
+            if (notAnimatedYet.contains(position)) {
+                ScaleAnimation animation = new ScaleAnimation(1f, 0f, 1f, 1f,
+                        Animation.RELATIVE_TO_SELF, 0.5f,
+                        Animation.RELATIVE_TO_SELF, 0.5f);
+                animation.setDuration(150);
+                animation.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        ScaleAnimation expandAnimation = new ScaleAnimation(0f, 1f, 1f, 1f,
+                                Animation.RELATIVE_TO_SELF, 0.5f,
+                                Animation.RELATIVE_TO_SELF, 0.5f);
+                        expandAnimation.setDuration(150);
+                        addButton.setImageResource(isSelected ? R.drawable.ic_remove_circle_white_48dp
+                                : R.drawable.ic_add_circle_white_48dp);
+                        addButton.startAnimation(expandAnimation);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                addButton.startAnimation(animation);
+                notAnimatedYet.remove(position);
+            } else {
+                addButton.setImageResource(isSelected ? R.drawable.ic_remove_circle_white_48dp
+                        : R.drawable.ic_add_circle_white_48dp);
+            }
         }
     }
 }

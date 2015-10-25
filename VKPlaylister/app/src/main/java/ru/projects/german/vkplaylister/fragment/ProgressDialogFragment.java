@@ -19,7 +19,8 @@ public class ProgressDialogFragment extends DialogFragment{
     public static ProgressDialogFragment newInstance(String title, String message) {
         ProgressDialogFragment fragment = new ProgressDialogFragment();
         Bundle args = new Bundle();
-        args.putString(TITLE_KEY, MESSAGE_KEY);
+        args.putString(TITLE_KEY, title);
+        args.putString(MESSAGE_KEY, message);
         fragment.setArguments(args);
         return fragment;
     }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <item type="id" name="audios_loader">1</item>
-    <item type="id" name="albums_loader">2</item>
+    <item type="id" name="audios_loader">124514</item>
+    <item type="id" name="albums_loader">876789</item>
 </resources>

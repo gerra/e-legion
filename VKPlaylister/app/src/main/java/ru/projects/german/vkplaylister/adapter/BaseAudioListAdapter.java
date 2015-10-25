@@ -2,8 +2,13 @@ package ru.projects.german.vkplaylister.adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
+import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.adapter.viewholder.BaseAudioViewHolder;
+import ru.projects.german.vkplaylister.adapter.viewholder.ProgressViewHolder;
 import ru.projects.german.vkplaylister.model.Audio;
 
 /**
@@ -11,14 +16,41 @@ import ru.projects.german.vkplaylister.model.Audio;
  *
  * @author German Berezhko, gerralizza@gmail.com
  */
-public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<BaseAudioViewHolder> {
+public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String TAG = BaseAudioListAdapter.class.getSimpleName();
+    protected static final int AUDIO_TYPE = 1;
+    protected static final int LOADING_TYPE = 2;
 
     protected Audio.AudioList audios = new Audio.AudioList();
 
+    protected abstract BaseAudioViewHolder getAudioViewHolder(ViewGroup parent);
+
     @Override
-    public void onBindViewHolder(BaseAudioViewHolder holder, int position) {
-        holder.bindItem(audios.get(position));
+    public int getItemViewType(int position) {
+        if (getItem(position) == null) {
+            return LOADING_TYPE;
+        } else {
+            return AUDIO_TYPE;
+        }
+    }
+
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if (viewType == LOADING_TYPE) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_progress, parent, false);
+            return new ProgressViewHolder(view);
+        } else {
+            return getAudioViewHolder(parent);
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof BaseAudioViewHolder) {
+            ((BaseAudioViewHolder) holder).bindItem(getItem(position));
+        } else if (holder instanceof ProgressViewHolder) {
+            ((ProgressViewHolder) holder).progressBar.setIndeterminate(true);
+        }
     }
 
     @Override
@@ -27,6 +59,7 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<BaseAudi
     }
 
     public void addAudios(Audio.AudioList audiosToAdd) {
+        removeLoadingItem();
         Log.d(TAG, "attempt to add " + audiosToAdd.size() + " audios");
         Audio.AudioList newAudiosToAdd = new Audio.AudioList();
         for (Audio audioToAdd : audiosToAdd) {
@@ -44,7 +77,21 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<BaseAudi
         Log.d(TAG, "added " + newAudiosToAdd.size() + " audios");
         int oldSize = audios.size();
         audios.addAll(newAudiosToAdd);
-        notifyItemRangeInserted(oldSize, audios.size());
+        notifyItemRangeInserted(oldSize, audios.size() - oldSize);
+    }
+
+    public void addLoadingItem() {
+        if (audios.size() == 0 || audios.get(audios.size() - 1) != null) {
+            audios.add(null);
+            notifyItemInserted(audios.size() - 1);
+        }
+    }
+
+    private void removeLoadingItem() {
+        if (audios.size() != 0 && audios.get(audios.size() - 1) == null) {
+            audios.remove(audios.size() - 1);
+            notifyItemRemoved(audios.size());
+        }
     }
 
     public Audio getItem(int position) {

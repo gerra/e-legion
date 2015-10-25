@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.adapter.viewholder.AudioViewHolder;
+import ru.projects.german.vkplaylister.adapter.viewholder.BaseAudioViewHolder;
 
 /**
  * Created by root on 15.10.15.
@@ -13,8 +14,9 @@ import ru.projects.german.vkplaylister.adapter.viewholder.AudioViewHolder;
 public class AudioListAdapter extends BaseAudioListAdapter {
     private static final String TAG = AudioListAdapter.class.getSimpleName();
 
+
     @Override
-    public AudioViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    protected BaseAudioViewHolder getAudioViewHolder(ViewGroup parent) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_audio, parent, false);
         return new AudioViewHolder(view);
     }
