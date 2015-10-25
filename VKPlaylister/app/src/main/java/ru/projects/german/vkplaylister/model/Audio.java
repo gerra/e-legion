@@ -13,7 +13,7 @@ import java.util.Collection;
  * @author German Berezhko, gerralizza@gmail.com
  */
 public class Audio implements Serializable {
-    public static class AudioList extends ArrayList<Audio> {
+    public static class AudioList extends ArrayList<Audio> implements Serializable {
         public AudioList() {
             super();
         }

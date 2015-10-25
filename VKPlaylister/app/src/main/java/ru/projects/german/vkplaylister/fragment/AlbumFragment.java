@@ -15,9 +15,7 @@ import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
 
 import ru.projects.german.vkplaylister.R;
-import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.adapter.AudioListAdapter;
-import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
 import ru.projects.german.vkplaylister.data.DataManager;
 import ru.projects.german.vkplaylister.model.Album;
 
@@ -43,17 +41,6 @@ public class AlbumFragment extends BaseAudiosFragment {
     @Override
     protected void initAdapter() {
         adapter = new AudioListAdapter();
-    }
-
-    @Override
-    protected void initOnItemClickListener() {
-        onItemClickListener = new RecyclerItemClickListener(TheApp.getApp(), new RecyclerItemClickListener.OnItemClickListener() {
-            @Override
-            public boolean onItemClick(View view, int position) {
-                Log.d(TAG, adapter.getItem(position).getTitle() + ", view id=" + view.getId());
-                return true;
-            }
-        });
     }
 
     @Nullable

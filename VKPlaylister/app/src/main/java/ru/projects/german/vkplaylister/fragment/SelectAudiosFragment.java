@@ -14,8 +14,6 @@ import android.view.ViewGroup;
 import java.util.Set;
 
 import ru.projects.german.vkplaylister.R;
-import ru.projects.german.vkplaylister.TheApp;
-import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
 import ru.projects.german.vkplaylister.adapter.SelectAudioAdapter;
 import ru.projects.german.vkplaylister.model.Audio;
 
@@ -64,19 +62,6 @@ public abstract class SelectAudiosFragment extends BaseAudiosFragment {
 
             }
         });
-    }
-
-    @Override
-    protected void initOnItemClickListener() {
-        if (onItemClickListener == null) {
-            onItemClickListener = new RecyclerItemClickListener(TheApp.getApp(), new RecyclerItemClickListener.OnItemClickListener() {
-                @Override
-                public boolean onItemClick(View view, int position) {
-                    Log.d(TAG, adapter.getItem(position).getTitle());
-                    return view.getId() == R.id.add_audio;
-                }
-            });
-        }
     }
 
     @Nullable

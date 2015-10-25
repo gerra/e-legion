@@ -40,7 +40,7 @@ public abstract class BaseAudiosFragment extends Fragment
     protected RecyclerView.OnScrollListener onScrollListener;
 
     protected abstract void initAdapter();
-    protected abstract void initOnItemClickListener();
+    protected void initOnItemClickListener() {}
 
     private void initOnScrollListener() {
         if (onScrollListener == null) {

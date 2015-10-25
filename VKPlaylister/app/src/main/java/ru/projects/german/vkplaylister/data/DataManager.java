@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.api.VKApiConst;
+import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
@@ -98,10 +99,6 @@ public class DataManager {
         return albums;
     }
 
-    public static void uploadAlbum(Album album) {
-        
-    }
-
     public static void createAlbumByTitleAndGetId(String title, VKRequest.VKRequestListener listener) {
         VKParameters params = new VKParameters();
         params.put(Constants.VK_ALBUM_TITLE, title);
@@ -121,7 +118,7 @@ public class DataManager {
         }
         VKParameters params = new VKParameters();
         params.put(Constants.VK_ALBUM_ID, album.getVkId());
-        params.put(Constants.VK_ALBUM_AUDIO_IDS, audioIds);
+        params.put(Constants.VK_AUDIO_IDS, audioIds);
         VKRequest request = new VKRequest(Constants.VK_AUDIOS_MOVE_TO_ALBUM, params);
         request.executeWithListener(listener);
     }
@@ -138,5 +135,28 @@ public class DataManager {
         params.put(Constants.VK_ALBUM_ID, album.getVkId());
         VKRequest request = new VKRequest(Constants.VK_AUDIOS_DELETE_ALBUM, params);
         request.executeWithListener(listener);
+    }
+
+    public static String getAudioUrl(Audio audio) {
+        VKParameters params = new VKParameters();
+        params.put(Constants.VK_AUDIOS, String.valueOf(audio.getOwnerId() + "_" + audio.getId()));
+        VKRequest request = new VKRequest(Constants.VK_AUDIO_GET_BY_ID, params);
+        final String[] url = new String[1];
+        request.executeSyncWithListener(new VKRequest.VKRequestListener() {
+            @Override
+            public void onComplete(VKResponse response) {
+                try {
+                    url[0] = response.json.getJSONArray("response").getJSONObject(0).getString("url");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(VKError error) {
+                Log.e(TAG, error + toString());
+            }
+        });
+        return url[0];
     }
 }

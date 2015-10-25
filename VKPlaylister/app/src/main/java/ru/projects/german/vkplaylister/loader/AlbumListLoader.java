@@ -2,6 +2,7 @@ package ru.projects.german.vkplaylister.loader;
 
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
 
 import ru.projects.german.vkplaylister.data.DataManager;
 import ru.projects.german.vkplaylister.model.Album;
@@ -12,6 +13,8 @@ import ru.projects.german.vkplaylister.model.Album;
  * @author German Berezhko, gerralizza@gmail.com
  */
 public class AlbumListLoader extends AsyncTaskLoader<Album.AlbumList> {
+    private static final String TAG = AlbumListLoader.class.getSimpleName();
+
     private static final int ALBUMS_PER_REQUEST = 50;
 
     private LoadingListener loadingListener;
@@ -28,6 +31,7 @@ public class AlbumListLoader extends AsyncTaskLoader<Album.AlbumList> {
     }
 
     public void loadMoreAlbums(int offset) {
+        Log.d(TAG, "loadMoreAlbums(" + offset + ")");
         currentOffset = offset;
         super.forceLoad();
     }

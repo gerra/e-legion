@@ -45,12 +45,11 @@ public class AlbumTitleDialogFragment extends DialogFragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         final String title = editText.getText().toString();
-                        final MainActivity mainActivity = (MainActivity) getActivity();
                         final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
                                 getResources().getString(R.string.dialog_wait_title),
                                 getResources().getString(R.string.create_album_dialog_wait_message)
                         );
-                        progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
+                        progressDialog.show(getActivity().getSupportFragmentManager(), ProgressDialogFragment.TAG);
                         DataManager.createAlbumByTitleAndGetId(title, new VKRequest.VKRequestListener() {
                             @Override
                             public void onComplete(VKResponse response) {
@@ -62,14 +61,21 @@ public class AlbumTitleDialogFragment extends DialogFragment {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-                                mainActivity.openFragment(CreateAlbumFragment.newInstance(title, albumId), true);
-                                progressDialog.dismiss();
+                                ((MainActivity) getActivity()).openFragment(CreateAlbumFragment.newInstance(title, albumId), true);
+
+                                getActivity().getSupportFragmentManager()
+                                        .beginTransaction()
+                                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                                        .commit();
                             }
 
                             @Override
                             public void onError(VKError error) {
                                 Log.e(TAG, error.toString());
-                                progressDialog.dismiss();
+                                getActivity().getSupportFragmentManager()
+                                        .beginTransaction()
+                                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                                        .commit();
                             }
                         });
                     }

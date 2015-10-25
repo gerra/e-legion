@@ -103,18 +103,24 @@ public class CreateAlbumFragment extends SelectAudiosFragment {
         final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
                 getResources().getString(R.string.dialog_wait_title),
                 getResources().getString(R.string.add_audios_to_album_wait_message, createdAlbum.getTitle()));
-        progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
+        progressDialog.show(getActivity().getSupportFragmentManager(), ProgressDialogFragment.TAG);
         DataManager.loadAlbumToNet(createdAlbum, new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
                 getMainActivity().openFragment(AlbumFragment.newInstance(createdAlbum, true));
-                progressDialog.dismiss();
+                getActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                        .commit();
             }
 
             @Override
             public void onError(VKError error) {
                 Log.e(TAG, error.toString());
-                progressDialog.dismiss();
+                getActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                        .commit();
             }
         });
     }

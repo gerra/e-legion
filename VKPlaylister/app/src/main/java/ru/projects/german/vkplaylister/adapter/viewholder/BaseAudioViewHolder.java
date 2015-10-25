@@ -1,6 +1,7 @@
 package ru.projects.german.vkplaylister.adapter.viewholder;
 
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import ru.projects.german.vkplaylister.R;
@@ -14,11 +15,13 @@ import ru.projects.german.vkplaylister.model.Audio;
 public abstract class BaseAudioViewHolder extends BinderViewHolder<Audio> {
     protected TextView artist;
     protected TextView title;
+    public ImageView playButton;
 
     public BaseAudioViewHolder(View itemView) {
         super(itemView);
         artist = (TextView) itemView.findViewById(R.id.artist);
         title = (TextView) itemView.findViewById(R.id.title);
+        playButton = (ImageView) itemView.findViewById(R.id.play_button);
     }
 
     @Override
