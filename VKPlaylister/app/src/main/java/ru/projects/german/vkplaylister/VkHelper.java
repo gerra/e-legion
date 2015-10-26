@@ -43,4 +43,9 @@ public class VkHelper {
         VKRequest request = new VKRequest(Constants.VK_AUDIO_GET, params);
         return request;
     }
+
+    public static int getVkObjectHash(int ownerId, int id, Class objClass) {
+        String s = objClass.getSimpleName() + "_" + ownerId + "_" + id;
+        return s.hashCode();
+    }
 }

@@ -17,12 +17,18 @@ import ru.projects.german.vkplaylister.model.Audio;
  */
 public class ModernAudiosLoader extends AsyncTaskLoader<Audio.AudioList> {
     private static final String TAG = ModernAudiosLoader.class.getSimpleName();
-
     public static final int AUDIOS_PER_REQUEST = 50;
+    public enum LoadType {
+        SEARCH,
+        BY_ALBUM
+    }
 
     private LoadingHelper loadingHelper = new LoadingHelper(){};
 
+    private LoadType loadType = LoadType.BY_ALBUM;
     private Album album;
+    private String searchQuery;
+
     private int currentOffset;
 
     private boolean isRunning;
@@ -38,14 +44,19 @@ public class ModernAudiosLoader extends AsyncTaskLoader<Audio.AudioList> {
 
     @Override
     public Audio.AudioList loadInBackground() {
-        Log.d(TAG, "loadInBackground()");
-        Audio.AudioList audios = DataManager.getAudiosFromNet(
-                album != null ? album.getVkOwnerId() : Integer.parseInt(VKAccessToken.currentToken().userId),
-                album != null ? album.getVkId() : -1,
-                false,
-                currentOffset,
-                AUDIOS_PER_REQUEST
-        );
+        Log.d(TAG, "loadInBackground(), " + loadType.toString());
+        Audio.AudioList audios;
+        if (loadType == LoadType.BY_ALBUM) {
+            audios = DataManager.getAudiosFromNet(
+                    album != null ? album.getVkOwnerId() : Integer.parseInt(VKAccessToken.currentToken().userId),
+                    album != null ? album.getVkId() : -1,
+                    false,
+                    currentOffset,
+                    AUDIOS_PER_REQUEST
+            );
+        } else {
+            audios = DataManager.searchAudiosInNet(searchQuery, currentOffset, AUDIOS_PER_REQUEST);
+        }
         wasStarted = true;
         return audios;
     }
@@ -91,5 +102,18 @@ public class ModernAudiosLoader extends AsyncTaskLoader<Audio.AudioList> {
     public void onCanceled(Audio.AudioList data) {
         isRunning = false;
         super.onCanceled(data);
+    }
+
+    public void setLoadType(LoadType loadType) {
+        this.loadType = loadType;
+        if (loadType == LoadType.BY_ALBUM) {
+            searchQuery = "";
+        } else {
+            album = null;
+        }
+    }
+
+    public void setSearchQuery(String searchQuery) {
+        this.searchQuery = searchQuery;
     }
 }

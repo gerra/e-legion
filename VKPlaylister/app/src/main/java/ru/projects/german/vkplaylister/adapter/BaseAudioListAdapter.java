@@ -138,4 +138,10 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<Recycler
     public Audio.AudioList getAudios() {
         return audios;
     }
+
+    public void clear() {
+        int oldSize = audios.size();
+        audios.clear();
+        notifyItemRangeRemoved(0, oldSize);
+    }
 }

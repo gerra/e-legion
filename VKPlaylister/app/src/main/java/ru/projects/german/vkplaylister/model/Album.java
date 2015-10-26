@@ -5,6 +5,8 @@ import android.util.Log;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import ru.projects.german.vkplaylister.VkHelper;
+
 public class Album implements Serializable {
     public static class AlbumList extends ArrayList<Album> {
         public int findAlbumPosition(Album album) {
@@ -104,6 +106,15 @@ public class Album implements Serializable {
         return audios.size();
     }
 
+    public void clear() {
+        audios.clear();
+    }
+
+    @Override
+    public int hashCode() {
+        return VkHelper.getVkObjectHash(vkOwnerId, vkId, Album.class);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || !(o instanceof Album)) {
@@ -121,10 +132,6 @@ public class Album implements Serializable {
         }
         Log.d("Album", "Hard compare of 2 albums");
         return other.audios.equals(audios);
-    }
-
-    public void clear() {
-        audios.clear();
     }
 
     @Override

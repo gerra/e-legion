@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import ru.projects.german.vkplaylister.VkHelper;
+
 /**
  * Created on 18.10.15.
  *
@@ -80,5 +82,27 @@ public class Audio implements Serializable {
 
     public int getDuration() {
         return duration;
+    }
+
+    @Override
+    public int hashCode() {
+        return VkHelper.getVkObjectHash(ownerId, id, Audio.class);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || !(o instanceof Audio)) {
+            return false;
+        }
+        if (o == this) {
+            return true;
+        }
+        Audio other = (Audio) o;
+        if (id != -1 && ownerId != -1) {
+            return other.id == id && other.ownerId == ownerId;
+        }
+        return duration == other.duration
+                && title.equals(other.title)
+                && artist.equals(other.artist);
     }
 }

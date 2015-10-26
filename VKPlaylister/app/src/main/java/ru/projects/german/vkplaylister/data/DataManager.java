@@ -3,7 +3,6 @@ package ru.projects.german.vkplaylister.data;
 import android.util.Log;
 
 import com.vk.sdk.VKAccessToken;
-import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
@@ -28,19 +27,7 @@ import ru.projects.german.vkplaylister.model.Audio;
 public class DataManager {
     private static final String TAG = DataManager.class.getSimpleName();
 
-    public static Audio.AudioList getAudiosFromNet(int ownerId,
-                                                int albumId,
-                                                boolean needUser,
-                                                int offset,
-                                                int count,
-                                                final int... audioIds) {
-        final VKRequest request = VkHelper.getAudioRequest(
-                ownerId,
-                albumId,
-                needUser,
-                offset,
-                count,
-                audioIds);
+    private static Audio.AudioList getAudiosByRequest(VKRequest request) {
         final Audio.AudioList[] audios = new Audio.AudioList[1];
         request.executeSyncWithListener(new VKRequest.VKRequestListener() {
             @Override
@@ -63,11 +50,42 @@ public class DataManager {
         return audios[0];
     }
 
+    public static Audio.AudioList getAudiosFromNet(int ownerId,
+                                                int albumId,
+                                                boolean needUser,
+                                                int offset,
+                                                int count,
+                                                final int... audioIds) {
+        final VKRequest request = VkHelper.getAudioRequest(
+                ownerId,
+                albumId,
+                needUser,
+                offset,
+                count,
+                audioIds);
+        return getAudiosByRequest(request);
+    }
+
+    public static Audio.AudioList searchAudiosInNet(String query, int offset, int count) {
+        VKParameters params = new VKParameters();
+        params.put(Constants.Q, query);
+        params.put(Constants.VK_AUTO_COMPLETE, 1);
+        params.put(Constants.VK_LYRICS, 0);
+        params.put(Constants.VK_PERFORMER_ONLY, 0);
+        params.put(Constants.SORT, 2);
+        params.put(Constants.VK_SEARCH_OWN, 0);
+        params.put(Constants.OFFSET, offset);
+        params.put(Constants.COUNT, count);
+        VKRequest request = new VKRequest(Constants.VK_AUDIO_SEARCH, params);
+        return getAudiosByRequest(request);
+    }
+
+
     public static Album.AlbumList getAlbumList(int count, int offset) {
         VKParameters params = new VKParameters();
-        params.put(VKApiConst.OWNER_ID, VKAccessToken.currentToken().userId);
-        params.put(VKApiConst.COUNT, String.valueOf(count));
-        params.put(VKApiConst.OFFSET, String.valueOf(offset));
+        params.put(Constants.OWNER_ID, VKAccessToken.currentToken().userId);
+        params.put(Constants.COUNT, String.valueOf(count));
+        params.put(Constants.OFFSET, String.valueOf(offset));
         VKRequest albumsRequest = new VKRequest(Constants.VK_AUDIOS_GET_ALBUMS, params);
 
         final Album.AlbumList albums = new Album.AlbumList();
@@ -121,6 +139,7 @@ public class DataManager {
     }
 
     public static void loadAlbumToNet(Album album, VKRequest.VKRequestListener listener) {
+        Log.d(TAG, "loadAlbumToNet()");
         String audioIds = "";
         Audio.AudioList audios = album.getAudios();
         for (int i = 0; i < audios.size(); i++) {
@@ -130,6 +149,7 @@ public class DataManager {
             }
             audioIds += audio.getId();
         }
+        Log.d(TAG, "loadAlbumToNet(), ids=" + audioIds);
         VKParameters params = new VKParameters();
         params.put(Constants.VK_ALBUM_ID, album.getVkId());
         params.put(Constants.VK_AUDIO_IDS, audioIds);

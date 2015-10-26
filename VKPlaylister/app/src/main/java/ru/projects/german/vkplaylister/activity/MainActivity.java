@@ -19,6 +19,7 @@ import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.fragment.AlbumsFragment;
 import ru.projects.german.vkplaylister.fragment.AuthorizeFragment;
 import ru.projects.german.vkplaylister.fragment.HasTitle;
+import ru.projects.german.vkplaylister.fragment.OnBackPressedListener;
 import ru.projects.german.vkplaylister.otto.NeedCloseFragmentEvent;
 import ru.projects.german.vkplaylister.otto.NeedOpenFragmentEvent;
 import ru.projects.german.vkplaylister.otto.Otto;
@@ -126,6 +127,17 @@ public class MainActivity extends AppCompatActivity {
             }
         })) {
             super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
+        if (fragment != null
+                && fragment instanceof OnBackPressedListener && fragment.isResumed()) {
+            ((OnBackPressedListener) fragment).onBackPressed();
+        } else {
+            super.onBackPressed();
         }
     }
 

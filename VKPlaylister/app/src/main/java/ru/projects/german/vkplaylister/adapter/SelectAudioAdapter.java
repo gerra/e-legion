@@ -52,7 +52,7 @@ public class SelectAudioAdapter extends BaseAudioListAdapter {
 
     @Override
     protected BaseAudioViewHolder getAudioViewHolder(ViewGroup parent) {
-        View view = view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_audio_for_add, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_audio_for_add, parent, false);
         return new SelectAudioViewHolder(view);
     }
 
@@ -62,7 +62,6 @@ public class SelectAudioAdapter extends BaseAudioListAdapter {
         if (holder instanceof SelectAudioViewHolder) {
             final boolean isSelected = selectedAudios.contains(getItem(position));
             final ImageView addButton = ((SelectAudioViewHolder) holder).addAudioButton;
-//        ((SelectAudioViewHolder) holder).setSelected(selectedAudios.contains(getItem(position)));
             ((SelectAudioViewHolder) holder).addAudioButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
