@@ -1,14 +1,22 @@
 package ru.projects.german.vkplaylister.adapter;
 
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.squareup.otto.Subscribe;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.adapter.viewholder.AlbumViewHolder;
 import ru.projects.german.vkplaylister.model.Album;
+import ru.projects.german.vkplaylister.otto.AlbumCreatedEvent;
+import ru.projects.german.vkplaylister.otto.AlbumDeletedEvent;
 
 /**
  * Created on 17.10.15.
@@ -18,7 +26,11 @@ import ru.projects.german.vkplaylister.model.Album;
 public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
     private static final String TAG = AlbumListAdapter.class.getSimpleName();
 
+    private Handler recentlyDeletedEraser = new Handler();
+
     private Album.AlbumList albums = new Album.AlbumList();
+    // is created because of after deleting album, vk is still return it to me
+    private Set<Album> recentlyDeleted = new HashSet<>();
 
     @Override
     public AlbumViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -38,19 +50,54 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
 
     public void addAlbums(Album.AlbumList albumsToAdd) {
         Log.d(TAG, "attempt to add " + albumsToAdd.size() + " albums");
-        Album.AlbumList newAlbumsToAdd = new Album.AlbumList();
+        Album.AlbumList newAlbums = new Album.AlbumList();
         for (Album album : albumsToAdd) {
-            if (!albums.hasAlbum(album)) {
-                newAlbumsToAdd.add(album);
+            if (!recentlyDeleted.contains(album) && !albums.contains(album)) {
+                newAlbums.add(album);
             }
         }
-        Log.d(TAG, "added " + newAlbumsToAdd.size() + " albums");
-        int oldSize = albums.size();
-        albums.addAll(newAlbumsToAdd);
-        notifyItemRangeInserted(oldSize, albums.size() - oldSize);
+        int added = newAlbums.size();
+        Log.d(TAG, "added " + added + " albums");
+        newAlbums.addAll(albums);
+        albums = newAlbums;
+        notifyItemRangeInserted(0, added);
     }
 
     public Album getItem(int position) {
         return albums.get(position);
+    }
+
+    @SuppressWarnings("unused")
+    @Subscribe
+    public void onDeleteAlbum(AlbumDeletedEvent event) {
+        final Album album = event.getAlbum();
+        int i = albums.findAlbumPosition(album);
+        if (i != -1) {
+            albums.remove(i);
+            notifyItemRemoved(i);
+        }
+        recentlyDeleted.add(album);
+//        recentlyDeletedEraser.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d(TAG, "recently deleted erasing");
+//                if (recentlyDeleted != null && album != null) {
+//                    recentlyDeleted.remove(album);
+//                }
+//            }
+//        }, 5_000);
+        Log.d(TAG, "album deleted: " + album.toString());
+    }
+
+    @SuppressWarnings("unused")
+    @Subscribe
+    public void onCreateAlbum(AlbumCreatedEvent event) {
+        final Album album = event.getAlbum();
+        int i = albums.findAlbumPosition(album);
+        if (i == -1) {
+            albums.add(0, album);
+            notifyItemInserted(i);
+        }
+        Log.d(TAG, "album created: " + album.toString());
     }
 }

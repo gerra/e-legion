@@ -1,5 +1,6 @@
 package ru.projects.german.vkplaylister.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -19,8 +20,10 @@ import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.adapter.AlbumListAdapter;
 import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
-import ru.projects.german.vkplaylister.loader.AlbumListLoader;
+import ru.projects.german.vkplaylister.fragment.dialog.AlbumTitleDialogFragment;
+import ru.projects.german.vkplaylister.loader.AlbumsLoader;
 import ru.projects.german.vkplaylister.model.Album;
+import ru.projects.german.vkplaylister.otto.Otto;
 
 /**
  * Created on 17.10.15.
@@ -53,7 +56,8 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
                 public boolean onItemClick(View view, int position) {
                     Album album = adapter.getItem(position);
                     Log.d(TAG, "Clicked album " + album.getTitle());
-                    ((MainActivity) getActivity()).openFragment(AlbumFragment.newInstance(album), true);
+                    ((MainActivity) getActivity()).openFragment(
+                            AlbumFragment.newInstance(album), true);
                     return true;
                 }
 
@@ -65,6 +69,21 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
                 }
             });
         }
+        Otto.register(adapter);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (adapter != null) {
+            Otto.register(adapter);
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        Otto.unregister(adapter);
+        super.onDetach();
     }
 
     @Override
@@ -79,6 +98,9 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
                 dialog.show(getFragmentManager(), AlbumTitleDialogFragment.TAG);
             }
         });
+        getMainActivity().getSupportActionBar().setHomeButtonEnabled(false);
+        getMainActivity().getSupportActionBar().setDisplayShowHomeEnabled(false);
+        getMainActivity().getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
     @Override
@@ -109,7 +131,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
     public Loader<Album.AlbumList> onCreateLoader(int id, Bundle args) {
         if (id == R.id.albums_loader) {
             Log.d(TAG, "onCreateLoader");
-            return new AlbumListLoader(TheApp.getApp());
+            return new AlbumsLoader(TheApp.getApp());
         }
         return null;
     }
@@ -125,5 +147,9 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onLoaderReset(Loader<Album.AlbumList> loader) {
         Log.d(TAG, "onLoaderReset");
+    }
+
+    public MainActivity getMainActivity() {
+        return (MainActivity) getActivity();
     }
 }

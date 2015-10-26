@@ -7,20 +7,24 @@ import java.util.ArrayList;
 
 public class Album implements Serializable {
     public static class AlbumList extends ArrayList<Album> {
-        public boolean hasAlbum(Album album) {
+        public int findAlbumPosition(Album album) {
             for (int i = 0; i < size(); i++) {
                 Album cur = get(i);
                 if (cur.equals(album)) {
-                    return true;
+                    return i;
                 }
             }
-            return false;
+            return -1;
+        }
+
+        public boolean hasAlbum(Album album) {
+            return findAlbumPosition(album) != -1;
         }
     }
 
     private String title;
     private int totalCount;
-    private Audio.AudioList audios;
+    private Audio.AudioList audios = new Audio.AudioList();
 
     /**
      * Flag indicates that this album was uploaded in the some album in vk
@@ -117,5 +121,22 @@ public class Album implements Serializable {
         }
         Log.d("Album", "Hard compare of 2 albums");
         return other.audios.equals(audios);
+    }
+
+    public void clear() {
+        audios.clear();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder
+                .append("Album [")
+                .append(String.format("tit"));
+        return "Album [title=" + title
+                + ",vkId=" + vkId
+                + ",vkOwnerId" + vkOwnerId
+                + ",audios count=(total=" + totalCount + ",locally=" + audios.size()
+                + ")]";
     }
 }

@@ -16,6 +16,7 @@ import org.json.JSONObject;
 
 import ru.projects.german.vkplaylister.Constants;
 import ru.projects.german.vkplaylister.VkHelper;
+import ru.projects.german.vkplaylister.loader.ModernAudiosLoader;
 import ru.projects.german.vkplaylister.model.Album;
 import ru.projects.german.vkplaylister.model.Audio;
 
@@ -27,27 +28,35 @@ import ru.projects.german.vkplaylister.model.Audio;
 public class DataManager {
     private static final String TAG = DataManager.class.getSimpleName();
 
-    public static VkAudioArray getAudiosFromNet(int owner_id,
-                                                int album_id,
+    public static Audio.AudioList getAudiosFromNet(int ownerId,
+                                                int albumId,
                                                 boolean needUser,
                                                 int offset,
                                                 int count,
-                                                int... audioIds) {
-        VKRequest request = VkHelper.getAudioRequest(
-                owner_id,
-                album_id,
+                                                final int... audioIds) {
+        final VKRequest request = VkHelper.getAudioRequest(
+                ownerId,
+                albumId,
                 needUser,
                 offset,
                 count,
                 audioIds);
-        final VkAudioArray[] audios = new VkAudioArray[1];
+        final Audio.AudioList[] audios = new Audio.AudioList[1];
         request.executeSyncWithListener(new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
+                int totalCount = -1;
                 try {
-                    audios[0] = (VkAudioArray) new VkAudioArray().parse(response.json);
+                    VkAudioArray vkAudios = (VkAudioArray) new VkAudioArray().parse(response.json);
+                    audios[0] = new Audio.AudioList(vkAudios);
+                    totalCount = response.json
+                            .getJSONObject("response")
+                            .getInt("count");
                 } catch (JSONException e) {
                     e.printStackTrace();
+                }
+                if (totalCount != -1) {
+                    audios[0].setTotalCount(totalCount);
                 }
             }
         });
@@ -83,23 +92,28 @@ public class DataManager {
         });
         if (albums != null) {
             for (Album album : albums) {
-                VkAudioArray audios = getAudiosFromNet(
+                Audio.AudioList audios = getAudiosFromNet(
                         album.getVkOwnerId(),
                         album.getVkId(),
                         false,
                         0,
-                        1
+                        ModernAudiosLoader.AUDIOS_PER_REQUEST
                 );
                 if (audios != null) {
-                    album.setAudios(new Audio.AudioList(audios));
-                    album.setTotalCount(audios.getCount());
+                    album.setAudios(audios);
+                    int totalCount = audios.getTotalCount();
+                    if (totalCount != -1) {
+                        album.setTotalCount(totalCount);
+                    } else {
+                        album.setTotalCount(audios.size());
+                    }
                 }
             }
         }
         return albums;
     }
 
-    public static void createAlbumByTitleAndGetId(String title, VKRequest.VKRequestListener listener) {
+    public static void createEmptyAlbumByTitleAndGetId(String title, VKRequest.VKRequestListener listener) {
         VKParameters params = new VKParameters();
         params.put(Constants.VK_ALBUM_TITLE, title);
         VKRequest request = new VKRequest(Constants.VK_AUDIOS_ADD_ALBUM, params);

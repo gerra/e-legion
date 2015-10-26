@@ -23,8 +23,12 @@ import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
 import ru.projects.german.vkplaylister.adapter.SelectAudioAdapter;
 import ru.projects.german.vkplaylister.data.DataManager;
+import ru.projects.german.vkplaylister.fragment.dialog.ProgressDialogFragment;
 import ru.projects.german.vkplaylister.model.Album;
 import ru.projects.german.vkplaylister.model.Audio;
+import ru.projects.german.vkplaylister.otto.AlbumCreatedEvent;
+import ru.projects.german.vkplaylister.otto.AlbumDeletedEvent;
+import ru.projects.german.vkplaylister.otto.Otto;
 
 /**
  * Created on 22.10.15.
@@ -44,6 +48,8 @@ public class CreateAlbumFragment extends SelectAudiosFragment {
         fragment.setArguments(args);
         return fragment;
     }
+
+    private Album createdAlbum;
 
     public static CreateAlbumFragment newInstance(String albumTitle) {
         return newInstance(albumTitle, -1);
@@ -80,6 +86,15 @@ public class CreateAlbumFragment extends SelectAudiosFragment {
         }
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        createdAlbum = new Album(getAlbumTitle());
+        createdAlbum.setSynchronizedWithVk(true);
+        createdAlbum.setVkId(getArguments().getInt(ALBUM_VK_ID_KEY));
+        createdAlbum.setVkOwnerId(Integer.parseInt(VKAccessToken.currentToken().userId));
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -94,30 +109,30 @@ public class CreateAlbumFragment extends SelectAudiosFragment {
 
     @Override
     protected void onSelectionFinished(Set<Audio> selectedAudios) {
-        final Album createdAlbum = new Album(getAlbumTitle(), new Audio.AudioList(selectedAudios));
-        createdAlbum.setSynchronizedWithVk(true);
-        createdAlbum.setVkId(getArguments().getInt(ALBUM_VK_ID_KEY));
-        createdAlbum.setVkOwnerId(Integer.parseInt(VKAccessToken.currentToken().userId));
+        for (Audio audio : selectedAudios) {
+            createdAlbum.addAudio(audio);
+        }
         createdAlbum.setTotalCount(selectedAudios.size());
 
         final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
                 getResources().getString(R.string.dialog_wait_title),
                 getResources().getString(R.string.add_audios_to_album_wait_message, createdAlbum.getTitle()));
-        progressDialog.show(getActivity().getSupportFragmentManager(), ProgressDialogFragment.TAG);
+        progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
         DataManager.loadAlbumToNet(createdAlbum, new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
-                getMainActivity().openFragment(AlbumFragment.newInstance(createdAlbum, true));
-                getActivity().getSupportFragmentManager()
+                Otto.post(new AlbumCreatedEvent(createdAlbum));
+                getFragmentManager()
                         .beginTransaction()
                         .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
                         .commit();
+                getMainActivity().openFragment(AlbumFragment.newInstance(createdAlbum, true));
             }
 
             @Override
             public void onError(VKError error) {
                 Log.e(TAG, error.toString());
-                getActivity().getSupportFragmentManager()
+                getFragmentManager()
                         .beginTransaction()
                         .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
                         .commit();
@@ -130,6 +145,31 @@ public class CreateAlbumFragment extends SelectAudiosFragment {
         if (item.getItemId() == R.id.finish_selection) {
             Set<Audio> selectedAudios = ((SelectAudioAdapter) adapter).getSelectedAudios();
             onSelectionFinished(selectedAudios);
+            return true;
+        } else if (item.getItemId() == android.R.id.home) {
+            ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
+                    getResources().getString(R.string.dialog_wait_title),
+                    getResources().getString(R.string.remove_album_wait_message, createdAlbum.getTitle())
+            );
+            progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
+            DataManager.removeAlbumFromNet(createdAlbum, new VKRequest.VKRequestListener() {
+                @Override
+                public void onComplete(VKResponse response) {
+                    Otto.post(new AlbumDeletedEvent(createdAlbum));
+                    getFragmentManager().beginTransaction()
+                            .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                            .commit();
+                    getMainActivity().closeCurrentFragment();
+                }
+
+                @Override
+                public void onError(VKError error) {
+                    getFragmentManager().beginTransaction()
+                            .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                            .commit();
+                    getMainActivity().closeCurrentFragment();
+                }
+            });
             return true;
         }
         return false;

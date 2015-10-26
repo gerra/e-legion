@@ -17,7 +17,10 @@ import com.vk.sdk.api.VKResponse;
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.adapter.AudioListAdapter;
 import ru.projects.german.vkplaylister.data.DataManager;
+import ru.projects.german.vkplaylister.fragment.dialog.ProgressDialogFragment;
 import ru.projects.german.vkplaylister.model.Album;
+import ru.projects.german.vkplaylister.otto.AlbumDeletedEvent;
+import ru.projects.german.vkplaylister.otto.Otto;
 
 /**
  * Created by root on 14.10.15.
@@ -57,7 +60,7 @@ public class AlbumFragment extends BaseAudiosFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.remove_album) {
-            Album albumToDelete = getAlbum();
+            final Album albumToDelete = getAlbum();
             final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
                     getString(R.string.dialog_wait_title),
                     getString(R.string.remove_album_wait_message, albumToDelete.getTitle())
@@ -66,19 +69,27 @@ public class AlbumFragment extends BaseAudiosFragment {
             DataManager.removeAlbumFromNet(albumToDelete, new VKRequest.VKRequestListener() {
                 @Override
                 public void onComplete(VKResponse response) {
+                    getFragmentManager()
+                            .beginTransaction()
+                            .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                            .commit();
                     getMainActivity().closeCurrentFragment();
-                    progressDialog.dismiss();
+                    albumToDelete.clear();
+                    Otto.post(new AlbumDeletedEvent(albumToDelete));
                 }
 
                 @Override
                 public void onError(VKError error) {
                     Log.e(TAG, error.toString());
-                    progressDialog.dismiss();
+                    getFragmentManager()
+                            .beginTransaction()
+                            .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                            .commit();
                 }
             });
             return true;
         }
-        return false;
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

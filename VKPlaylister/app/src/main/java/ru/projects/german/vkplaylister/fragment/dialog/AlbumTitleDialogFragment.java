@@ -1,10 +1,11 @@
-package ru.projects.german.vkplaylister.fragment;
+package ru.projects.german.vkplaylister.fragment.dialog;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,8 +20,11 @@ import org.json.JSONException;
 
 import ru.projects.german.vkplaylister.Constants;
 import ru.projects.german.vkplaylister.R;
-import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.data.DataManager;
+import ru.projects.german.vkplaylister.fragment.CreateAlbumFragment;
+import ru.projects.german.vkplaylister.otto.NeedCloseFragmentEvent;
+import ru.projects.german.vkplaylister.otto.NeedOpenFragmentEvent;
+import ru.projects.german.vkplaylister.otto.Otto;
 
 /**
  * Created on 24.10.15.
@@ -49,8 +53,9 @@ public class AlbumTitleDialogFragment extends DialogFragment {
                                 getResources().getString(R.string.dialog_wait_title),
                                 getResources().getString(R.string.create_album_dialog_wait_message)
                         );
-                        progressDialog.show(getActivity().getSupportFragmentManager(), ProgressDialogFragment.TAG);
-                        DataManager.createAlbumByTitleAndGetId(title, new VKRequest.VKRequestListener() {
+                        final FragmentManager fragmentManager = getFragmentManager();
+                        progressDialog.show(fragmentManager, ProgressDialogFragment.TAG);
+                        DataManager.createEmptyAlbumByTitleAndGetId(title, new VKRequest.VKRequestListener() {
                             @Override
                             public void onComplete(VKResponse response) {
                                 int albumId = -1;
@@ -61,21 +66,14 @@ public class AlbumTitleDialogFragment extends DialogFragment {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-                                ((MainActivity) getActivity()).openFragment(CreateAlbumFragment.newInstance(title, albumId), true);
-
-                                getActivity().getSupportFragmentManager()
-                                        .beginTransaction()
-                                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
-                                        .commit();
+                                Otto.post(new NeedCloseFragmentEvent(ProgressDialogFragment.TAG));
+                                Otto.post(new NeedOpenFragmentEvent(CreateAlbumFragment.newInstance(title, albumId), true));
                             }
 
                             @Override
                             public void onError(VKError error) {
                                 Log.e(TAG, error.toString());
-                                getActivity().getSupportFragmentManager()
-                                        .beginTransaction()
-                                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
-                                        .commit();
+                                Otto.post(new NeedCloseFragmentEvent(ProgressDialogFragment.TAG));
                             }
                         });
                     }

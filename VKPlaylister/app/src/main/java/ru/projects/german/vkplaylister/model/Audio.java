@@ -14,6 +14,15 @@ import java.util.Collection;
  */
 public class Audio implements Serializable {
     public static class AudioList extends ArrayList<Audio> implements Serializable {
+        /**
+         * Count of total items on the server
+         * Valid, if instance was created using VkAudioArray
+         *
+         * Not recommended to set from {@link #Audio(VKApiAudio)}
+         * because of server may be did not give us total count
+         */
+        private int totalCount = -1;
+
         public AudioList() {
             super();
         }
@@ -27,6 +36,14 @@ public class Audio implements Serializable {
             for (VKApiAudio vkAudio : vkAudios) {
                 add(new Audio(vkAudio));
             }
+        }
+
+        public int getTotalCount() {
+            return totalCount;
+        }
+
+        public void setTotalCount(int totalCount) {
+            this.totalCount = totalCount;
         }
     }
 

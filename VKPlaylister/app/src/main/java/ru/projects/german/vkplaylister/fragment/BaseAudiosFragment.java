@@ -9,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -18,8 +19,8 @@ import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.adapter.BaseAudioListAdapter;
 import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
-import ru.projects.german.vkplaylister.loader.LoadingListener;
-import ru.projects.german.vkplaylister.loader.ModernAudioListLoader;
+import ru.projects.german.vkplaylister.loader.LoadingHelper;
+import ru.projects.german.vkplaylister.loader.ModernAudiosLoader;
 import ru.projects.german.vkplaylister.model.Album;
 import ru.projects.german.vkplaylister.model.Audio;
 
@@ -48,13 +49,13 @@ public abstract class BaseAudiosFragment extends Fragment
                     10,
                     new RecycleViewLoadingScrollListener.OnLoadListener() {
                         @Override
-                        public void onLoad(int totalCount) {
-                            if (getAlbum() == null || totalCount != getAlbum().getTotalCount()) {
-                                ModernAudioListLoader loader = (ModernAudioListLoader)
-                                        getLoaderManager().<Audio.AudioList>getLoader(R.id.audios_loader);
-                                if (loader != null && !loader.isRunning()) {
-                                    loader.loadMoreAudios(adapter.getItemCount());
-                                }
+                        public void onLoad(int layoutManagerItemCount) {
+                            Log.d(TAG, "Scrolling to the bottom");
+                            ModernAudiosLoader loader = (ModernAudiosLoader)
+                                    getLoaderManager().<Audio.AudioList>getLoader(R.id.audios_loader);
+                            if (loader != null && !loader.isRunning()) {
+                                Log.d(TAG, "loader is running: " + loader.isRunning());
+                                loader.loadMoreAudios(adapter.getItemCount());
                             }
                         }
                     });
@@ -87,12 +88,13 @@ public abstract class BaseAudiosFragment extends Fragment
         if (args != null) {
             isJustCreated = args.getBoolean(ALBUM_IS_JUST_CREATED_KEY, false);
         }
+        if (album != null) {
+            updateAudiosInAdapter(album.getAudios());
+        }
         if ((album == null || album.isSynchronizedWithVk()) && !isJustCreated) {
             if (getLoaderManager().getLoader(R.id.audios_loader) == null) {
                 getLoaderManager().initLoader(R.id.audios_loader, getArguments(), this);
             }
-        } else {
-            updateAudiosInAdapter(album.getAudios());
         }
     }
 
@@ -119,6 +121,9 @@ public abstract class BaseAudiosFragment extends Fragment
         if (onScrollListener != null) {
             audioList.addOnScrollListener(onScrollListener);
         }
+        getMainActivity().getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getMainActivity().getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getMainActivity().getSupportActionBar().setHomeButtonEnabled(true);
     }
 
     @Override
@@ -138,16 +143,36 @@ public abstract class BaseAudiosFragment extends Fragment
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            getMainActivity().closeCurrentFragment();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public Loader<Audio.AudioList> onCreateLoader(int id, Bundle args) {
         if (id == R.id.audios_loader) {
             Log.d(TAG, "onCreateLoader");
             Album album = getAlbum();
-            return new ModernAudioListLoader(TheApp.getApp(), album, new LoadingListener() {
+            ModernAudiosLoader loader = new ModernAudiosLoader(TheApp.getApp(), album, new LoadingHelper() {
                 @Override
                 public void onStartLoading() {
                     adapter.addLoadingItem();
                 }
+
+                @Override
+                public boolean needLoading() {
+                    int adapterCount = adapter.getItemCount();
+                    int totalCount = adapter.getAudios().getTotalCount();
+                    Log.d(TAG, "checkNeedLoading(): " + adapterCount + " " + totalCount);
+                    Log.d(TAG, "checkNeedLoading(): " + (totalCount == -1 || adapterCount < totalCount));
+                    return totalCount == -1 || adapterCount < totalCount;
+                }
             });
+
+            return loader;
         }
         return null;
     }

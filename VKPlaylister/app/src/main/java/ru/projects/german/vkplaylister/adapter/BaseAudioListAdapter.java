@@ -111,6 +111,9 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<Recycler
         Log.d(TAG, "added " + newAudiosToAdd.size() + " audios");
         int oldSize = audios.size();
         audios.addAll(newAudiosToAdd);
+        if (audiosToAdd.getTotalCount() > audios.getTotalCount()) {
+            audios.setTotalCount(audiosToAdd.getTotalCount());
+        }
         notifyItemRangeInserted(oldSize, audios.size() - oldSize);
     }
 
@@ -130,5 +133,9 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<Recycler
 
     public Audio getItem(int position) {
         return audios.get(position);
+    }
+
+    public Audio.AudioList getAudios() {
+        return audios;
     }
 }

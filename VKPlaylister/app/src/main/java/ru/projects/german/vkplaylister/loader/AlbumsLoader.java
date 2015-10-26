@@ -12,21 +12,23 @@ import ru.projects.german.vkplaylister.model.Album;
  *
  * @author German Berezhko, gerralizza@gmail.com
  */
-public class AlbumListLoader extends AsyncTaskLoader<Album.AlbumList> {
-    private static final String TAG = AlbumListLoader.class.getSimpleName();
+public class AlbumsLoader extends AsyncTaskLoader<Album.AlbumList> {
+    private static final String TAG = AlbumsLoader.class.getSimpleName();
 
     private static final int ALBUMS_PER_REQUEST = 50;
 
-    private LoadingListener loadingListener;
     private int currentOffset;
+    private volatile boolean wasStarted;
 
-    public AlbumListLoader(Context context) {
+    public AlbumsLoader(Context context) {
         super(context);
     }
 
     @Override
     public Album.AlbumList loadInBackground() {
+        Log.d(TAG, "loadInBackground()");
         Album.AlbumList albums = DataManager.getAlbumList(ALBUMS_PER_REQUEST, currentOffset);
+        wasStarted = true;
         return albums;
     }
 
@@ -38,6 +40,10 @@ public class AlbumListLoader extends AsyncTaskLoader<Album.AlbumList> {
 
     @Override
     protected void onStartLoading() {
-        loadMoreAlbums(currentOffset);
+        Log.d(TAG, "onStartLoading()");
+        if (!wasStarted || takeContentChanged()) {
+            Log.d(TAG, "onStartLoading(), start");
+            loadMoreAlbums(currentOffset);
+        }
     }
 }

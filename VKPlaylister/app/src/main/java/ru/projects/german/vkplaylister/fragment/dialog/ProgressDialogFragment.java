@@ -1,4 +1,4 @@
-package ru.projects.german.vkplaylister.fragment;
+package ru.projects.german.vkplaylister.fragment.dialog;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;

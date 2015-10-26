@@ -10,7 +10,7 @@ import android.support.v7.widget.RecyclerView;
  */
 public class RecycleViewLoadingScrollListener extends RecyclerView.OnScrollListener {
     public interface OnLoadListener {
-        void onLoad(int totalCount);
+        void onLoad(int layoutManagerItemCount);
     }
 
     private int itemThresHold;
