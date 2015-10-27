@@ -4,6 +4,8 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fab_margin">0dp</dimen>
 
+    <dimen name="corner_radius">4dp</dimen>
+
     <dimen name="small_margin">5dp</dimen>
     <dimen name="standard_margin">10dp</dimen>
 

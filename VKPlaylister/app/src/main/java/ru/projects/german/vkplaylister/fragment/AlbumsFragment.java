@@ -53,6 +53,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
     public void onStart() {
         Otto.register(this);
         super.onStart();
+        getMainActivity().getSupportActionBar().show();
     }
 
     @Override

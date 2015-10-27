@@ -2,27 +2,51 @@
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:layout_width="150dp"
-    android:layout_height="100dp"
+    android:layout_width="180dp"
+    android:layout_height="wrap_content"
     card_view:cardBackgroundColor="@color/colorLightPrimary"
     card_view:cardCornerRadius="0dp"
-    card_view:cardElevation="0dp">
+    card_view:cardElevation="4dp">
 
-    <TextView
-        android:id="@+id/title"
-        android:text="Blablabla"
-        style="?android:textColorPrimary"
-        android:layout_gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/album_cover"
+            android:scaleType="centerCrop"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:src="@drawable/default_album_cover" />
 
-    <TextView
-        android:id="@+id/itemCount"
-        android:text="5 items"
-        style="?android:textColorSecondary"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:layout_gravity="bottom|left" />
+        <TextView
+            android:id="@+id/title"
+            android:text="Blablabdddddddddddddddddla"
+            android:textSize="20dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            style="?android:textColorPrimary"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
+        <TextView
+            android:id="@+id/itemCount"
+            android:text="5 items"
+            style="?android:textColorSecondary"
+            android:textStyle="italic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_gravity="bottom|right" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/sync_with_vk"
+        android:layout_gravity="end"
+        android:layout_marginTop="3dp"
+        android:layout_marginRight="3dp"
+        android:src="@drawable/vk"
+        android:layout_width="16dp"
+        android:layout_height="16dp" />
 </android.support.v7.widget.CardView>

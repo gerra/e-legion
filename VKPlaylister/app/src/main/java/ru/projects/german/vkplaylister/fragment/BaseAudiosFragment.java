@@ -166,7 +166,7 @@ public abstract class BaseAudiosFragment extends Fragment
                 public boolean needLoading() {
                     int adapterCount = adapter.getItemCount();
                     int totalCount = adapter.getAudios().getTotalCount();
-                    if (album.getTotalCount() > totalCount) {
+                    if (album != null && album.getTotalCount() > totalCount) {
                         totalCount = album.getTotalCount();
                     }
                     Log.d(TAG, "checkNeedLoading(): " + adapterCount + " " + totalCount);

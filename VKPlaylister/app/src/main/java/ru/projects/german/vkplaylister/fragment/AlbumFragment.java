@@ -67,37 +67,37 @@ public class AlbumFragment extends BaseAudiosFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.remove_album) {
             final Album albumToDelete = getAlbum();
-            final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
-                    getString(R.string.dialog_wait_title),
-                    getString(R.string.remove_album_wait_message, albumToDelete.getTitle())
-            );
-            progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
-            DataManager.removeAlbumFromNet(albumToDelete, new VKRequest.VKRequestListener() {
-                @Override
-                public void onComplete(VKResponse response) {
-                    DataManager.removeAlbum(albumToDelete);
-                    getFragmentManager()
-                            .beginTransaction()
-                            .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
-                            .commit();
-                    getMainActivity().closeCurrentFragment();
-                    Otto.post(new AlbumDeletedEvent(albumToDelete));
-                }
-
-                @Override
-                public void onError(VKError error) {
-                    if (error != null) {
-                        Log.e(TAG, error.toString());
+            if (albumToDelete.isSynchronizedWithVk()) {
+                final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
+                        getString(R.string.dialog_wait_title),
+                        getString(R.string.remove_album_wait_message, albumToDelete.getTitle())
+                );
+                progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
+                DataManager.removeAlbumFromNet(albumToDelete, new VKRequest.VKRequestListener() {
+                    @Override
+                    public void onComplete(VKResponse response) {
+                        getFragmentManager()
+                                .beginTransaction()
+                                .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                                .commit();
                     }
-                    DataManager.removeAlbum(albumToDelete);
-                    getFragmentManager()
-                            .beginTransaction()
-                            .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
-                            .commit();
-                    getMainActivity().closeCurrentFragment();
-                    Otto.post(new AlbumDeletedEvent(albumToDelete));
-                }
-            });
+
+                    @Override
+                    public void onError(VKError error) {
+                        if (error != null) {
+                            Log.e(TAG, error.toString());
+                        }
+                        getFragmentManager()
+                                .beginTransaction()
+                                .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+                                .commit();
+                    }
+                });
+            } else {
+                getMainActivity().closeCurrentFragment();
+            }
+            DataManager.removeAlbum(albumToDelete);
+            Otto.post(new AlbumDeletedEvent(albumToDelete));
             return true;
         }
         return super.onOptionsItemSelected(item);
