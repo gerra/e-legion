@@ -90,7 +90,7 @@ public class Audio implements Serializable {
                 + "artist=" + artist
                 + ",title=" + title
                 + ",id=" + id
-                + ",ownerId" + ownerId
+                + ",ownerId=" + ownerId
                 + "]";
     }
 

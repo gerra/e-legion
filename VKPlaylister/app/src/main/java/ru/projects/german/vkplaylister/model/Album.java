@@ -138,7 +138,7 @@ public class Album implements Serializable {
     public String toString() {
         return "Album [title=" + title
                 + ",id=" + id
-                + ",ownerId" + ownerId
+                + ",ownerId=" + ownerId
                 + ",audios count=(total=" + totalCount + ",locally=" + audios.size()
                 + ")]";
     }

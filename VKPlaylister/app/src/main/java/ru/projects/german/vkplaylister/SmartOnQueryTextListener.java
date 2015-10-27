@@ -34,8 +34,10 @@ public class SmartOnQueryTextListener implements SearchView.OnQueryTextListener 
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-        onReadyListener.onReady(query);
-        return true;
+        if (query.length() < threshold) {
+            onReadyListener.onReady(query);
+        }
+        return false;
     }
 
     @Override
@@ -52,8 +54,6 @@ public class SmartOnQueryTextListener implements SearchView.OnQueryTextListener 
                 }
             };
             handler.postDelayed(onReadyRunnable, delayBeforeLoading);
-        } else if (newText.length() == 0) {
-            onReadyListener.onReady(newText);
         }
         return true;
     }

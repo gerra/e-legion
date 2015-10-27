@@ -153,12 +153,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        Log.d(TAG, "onBackPressed");
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
         if (fragment != null
                 && fragment instanceof OnBackPressedListener && fragment.isResumed()) {
             ((OnBackPressedListener) fragment).onBackPressed();
         } else {
-            closeCurrentFragment();
             super.onBackPressed();
         }
     }

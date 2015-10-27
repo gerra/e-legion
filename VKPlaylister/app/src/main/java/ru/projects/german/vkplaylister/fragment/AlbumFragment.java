@@ -55,7 +55,7 @@ public class AlbumFragment extends BaseAudiosFragment {
     @Override
     public void onResume() {
         super.onResume();
-        getMainActivity().controller.show();
+//        getMainActivity().controller.show();
     }
 
     @Override

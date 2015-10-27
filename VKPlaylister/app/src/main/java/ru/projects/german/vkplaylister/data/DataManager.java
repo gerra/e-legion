@@ -132,6 +132,7 @@ public class DataManager {
     }
 
     public static void createEmptyAlbumByTitleAndGetId(String title, VKRequest.VKRequestListener listener) {
+        Log.d(TAG, "createEmptyAlbumByTitleAndGetId(), title=" + title);
         VKParameters params = new VKParameters();
         params.put(Constants.VK_ALBUM_TITLE, title);
         VKRequest request = new VKRequest(Constants.VK_AUDIOS_ADD_ALBUM, params);
@@ -139,7 +140,6 @@ public class DataManager {
     }
 
     public static void loadAlbumToNet(Album album, VKRequest.VKRequestListener listener) {
-        Log.d(TAG, "loadAlbumToNet()");
         String audioIds = "";
         Audio.AudioList audios = album.getAudios();
         for (int i = 0; i < audios.size(); i++) {
@@ -149,7 +149,7 @@ public class DataManager {
             }
             audioIds += audio.getId();
         }
-        Log.d(TAG, "loadAlbumToNet(), ids=" + audioIds);
+        Log.d(TAG, "loadAlbumToNet(),album=" + album.toString() + ",ids=" + audioIds);
         VKParameters params = new VKParameters();
         params.put(Constants.VK_ALBUM_ID, album.getId());
         params.put(Constants.VK_AUDIO_IDS, audioIds);
@@ -158,11 +158,12 @@ public class DataManager {
     }
 
     public static void removeAlbumFromNet(Album album, VKRequest.VKRequestListener listener) {
-        if (!album.isSynchronizedWithVk()) {
-            Log.e(TAG, "Album " + album.toString() + " is not synchronized with vk");
+        if (album == null) {
             return;
         }
-        if (album == null) {
+        Log.d(TAG, "removeAlbumFromNet(), album=" + album.toString());
+        if (!album.isSynchronizedWithVk()) {
+            Log.e(TAG, "Album " + album.toString() + " is not synchronized with vk");
             return;
         }
         VKParameters params = new VKParameters();

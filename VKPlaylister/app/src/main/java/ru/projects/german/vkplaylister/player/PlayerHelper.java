@@ -23,14 +23,19 @@ public class PlayerHelper implements ServiceConnection {
 
     public static final int REGISTER_HELPER = 5;
 
-    public static final int PLAY_MESSAGE = 1;
+    public static final int PLAY_MESSAGE   = 1;
     public static final int RESUME_MESSAGE = 2;
-    public static final int PAUSE_MESSAGE = 3;
-    public static final int STOP_MESSAGE = 4;
+    public static final int PAUSE_MESSAGE  = 3;
+    public static final int STOP_MESSAGE   = 4;
+    public static final int PLAY_NEXT      = 5;
+    public static final int PLAY_PREV      = 6;
 
-    public static final int COMPLETE_MESSAGE = 5;
+    public static final String ACTION_PLAY_PAUSE = "ACTION_PLAY_PAUSE";
+    public static final String ACTION_RESUME = "ACTION_RESUME";
+    public static final String ACTION_PAUSE = "ACTION_PAUSE";
+    public static final String ACTION_PREV = "ACTION_PREV";
+    public static final String ACTION_NEXT = "ACTION_NEXT";
 
-    public static final String ACTION_PLAY = "ACTION_PLAY";
     public static final String ORDER_KEY = "ORDER_KEY";
     public static final String POSITION_TO_PLAY_KEY = "POSITION_TO_PLAY_KEY";
     public static final String AUDIO_TO_PLAY_KEY = "AUDIO_TO_PLAY_KEY";
@@ -39,7 +44,7 @@ public class PlayerHelper implements ServiceConnection {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
-                case COMPLETE_MESSAGE:
+                case PLAY_NEXT:
                     playNext();
                     break;
                 default:
@@ -98,7 +103,7 @@ public class PlayerHelper implements ServiceConnection {
 
     public void playNext() {
         currentPlayPosition++;
-        if (currentPlayPosition > order.size()) {
+        if (currentPlayPosition >= order.size()) {
             currentPlayPosition = 0;
         }
         play(order.get(currentPlayPosition));
@@ -128,6 +133,11 @@ public class PlayerHelper implements ServiceConnection {
         mService = new Messenger(service);
         Message msg = Message.obtain(null, REGISTER_HELPER);
         msg.replyTo = mMessenger;
+        try {
+            mService.send(msg);
+        } catch (RemoteException e) {
+            Log.e(TAG, "Unable to send register_helper message to service, " + e.getMessage());
+        }
     }
 
     @Override

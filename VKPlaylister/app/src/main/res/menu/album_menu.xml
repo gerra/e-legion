@@ -5,5 +5,5 @@
         android:id="@+id/remove_album"
         android:title="Remove album"
         android:icon="@drawable/ic_delete_white_48dp"
-        app:showAsAction="always"/>
+        app:showAsAction="always|collapseActionView"/>
 </menu>

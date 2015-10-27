@@ -154,12 +154,16 @@ public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackP
         }
     }
 
+    private SearchView searchView;
+    private MenuItem searchItem;
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.select_audios_menu, menu);
 
-        final MenuItem searchItem = menu.findItem(R.id.search_audios);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchItem = menu.findItem(R.id.search_audios);
+        searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
         searchView.setOnQueryTextListener(new SmartOnQueryTextListener(3, 1000, new SmartOnQueryTextListener.OnReadyListener() {
             @Override
             public void onReady(String text) {
@@ -171,12 +175,6 @@ public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackP
                 }
             }
         }));
-        searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-
-            }
-        });
     }
 
     @Override
@@ -186,6 +184,14 @@ public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackP
 
     @Override
     public void onBackPressed() {
+        Log.d(TAG, "onBackPressed()");
+        if (!searchView.isIconified()) {
+            Log.d(TAG, "Search view is active");
+            searchView.setIconified(true);
+            searchView.clearFocus();
+            return;
+        }
+
         ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
                 getResources().getString(R.string.dialog_wait_title),
                 getResources().getString(R.string.remove_album_wait_message, createdAlbum.getTitle())
