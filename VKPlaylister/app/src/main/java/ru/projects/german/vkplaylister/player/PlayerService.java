@@ -4,16 +4,16 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.session.MediaSession;
-import android.media.session.MediaSessionManager;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
-import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.data.DataManager;
 import ru.projects.german.vkplaylister.model.Audio;
 
@@ -23,27 +23,32 @@ import ru.projects.german.vkplaylister.model.Audio;
 public class PlayerService extends Service {
     private static final String TAG = PlayerService.class.getSimpleName();
 
-    private static final String ACTION_PLAY = "ACTION_PLAY";
-
-    private static final String ORDER_KEY = "ORDER_KEY";
-    private static final String POSITION_TO_PLAY_KEY = "POSITION_TO_PLAY_KEY";
-
-    public static void startPlaying(Audio.AudioList order, int positionToPlay) {
-        Log.d(TAG, "Creating intent to play...");
-        Intent intent = new Intent(TheApp.getApp(), PlayerService.class);
-        intent.setAction(ACTION_PLAY);
-        intent.putExtra(ORDER_KEY, order);
-        intent.putExtra(POSITION_TO_PLAY_KEY, positionToPlay);
-        TheApp.getApp().startService(intent);
-        Log.d(TAG, "...Intent created");
-    }
+    private Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+                case PlayerHelper.REGISTER_HELPER:
+                    playerHelper = msg.replyTo;
+                    break;
+                case PlayerHelper.PLAY_MESSAGE:
+                    play((Audio) msg.obj);
+                    break;
+                case PlayerHelper.PAUSE_MESSAGE:
+                    pause();
+                    break;
+                case PlayerHelper.RESUME_MESSAGE:
+                    resume();
+                    break;
+                default:
+                    Log.e(TAG, "Unexpected message: " + msg.toString());
+            }
+            return true;
+        }
+    });
+    private Messenger messenger = new Messenger(handler);
 
     private MediaPlayer mediaPlayer;
-    private MediaSessionManager manager;
-    private MediaSession session;
-
-    private Audio.AudioList order;
-    private int currentPosition;
+    private Messenger playerHelper;
 
     private void playNext() {
         //mediaPlayer.pla
@@ -57,34 +62,35 @@ public class PlayerService extends Service {
     private void initMediaSession() {
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//        manager = (MediaSessionManager) getSystemService(MEDIA_SESSION_SERVICE);
-//        session.setCallback(new MediaSession.Callback() {
-//        });
-
-//        private MediaController controller;
-//        controller = new MusicController(getApplicationContext());
-//        controller.setPrevNextListeners(
-//                new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        Log.d("Player", "onNext()")
-//                    }
-//                },
-//                new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        Log.d("Player", "onPrev()")
-//                    }
-//                });
-//        controller.setMediaPlayer(new MyMediaControl(mediaPlayer));
-//        controller.setEnabled(true);
-
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.start();
+            }
+        });
+        mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+            @Override
+            public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                Log.d(TAG, "onBufferingUpdate(): " + percent);
+            }
+        });
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                Log.d(TAG, "onCompletion()");
+                mp.reset();
+                try {
+                    playerHelper.send(Message.obtain(null, PlayerHelper.COMPLETE_MESSAGE));
+                } catch (RemoteException e) {
+                    Log.e(TAG, "Unable to send complete message: " + e.getMessage());
+                }
+            }
+        });
     }
 
-    private void onPlay() {
+    private void play(Audio audio) {
+        Log.d(TAG, "Play " + audio.toString());
         try {
-            Audio audio = order.get(currentPosition);
-            String url = DataManager.getAudioUrl(audio);
             if (mediaPlayer == null) {
                 initMediaSession();
             }
@@ -92,39 +98,35 @@ public class PlayerService extends Service {
                 mediaPlayer.stop();
             }
             mediaPlayer.reset();
+            String url = DataManager.getAudioUrl(audio);
             mediaPlayer.setDataSource(url);
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    mp.start();
-                }
-            });
             mediaPlayer.prepareAsync();
-            mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
-                @Override
-                public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                    Log.d(TAG, "onBufferingUpdate: " + percent);
-                }
-            });
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    private void pause() {
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+        }
+    }
+
+    private void resume() {
+        if (mediaPlayer != null) {
+            mediaPlayer.start();
+        }
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && intent.getAction().equals(ACTION_PLAY)) {
-            order = new Audio.AudioList((ArrayList<Audio>) intent.getSerializableExtra(ORDER_KEY));
-            currentPosition = intent.getIntExtra(POSITION_TO_PLAY_KEY, 0);
-            onPlay();
-        }
-        return START_STICKY;
+    public void onDestroy() {
+        super.onDestroy();
+        mediaPlayer.release();
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return messenger.getBinder();
     }
 }

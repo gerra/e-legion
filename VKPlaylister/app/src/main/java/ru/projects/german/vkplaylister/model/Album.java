@@ -37,13 +37,13 @@ public class Album implements Serializable {
      * id of remote album
      * valid if synchronizedWithVk = true
      */
-    private int vkId = -1;
+    private int id = -1;
 
     /**
      * owner id of remote album
      * valid if synchronizedWithVk = true
      */
-    private int vkOwnerId = -1;
+    private int ownerId = -1;
 
     public Album(String title) {
         this.title = title;
@@ -62,24 +62,24 @@ public class Album implements Serializable {
         return title;
     }
 
-    public void setVkId(int vkId) {
-        this.vkId = vkId;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public int getVkId() {
-        return vkId;
+    public int getId() {
+        return id;
     }
 
     public void setTotalCount(int totalCount) {
         this.totalCount = totalCount;
     }
 
-    public int getVkOwnerId() {
-        return vkOwnerId;
+    public int getOwnerId() {
+        return ownerId;
     }
 
-    public void setVkOwnerId(int vkOwnerId) {
-        this.vkOwnerId = vkOwnerId;
+    public void setOwnerId(int ownerId) {
+        this.ownerId = ownerId;
     }
 
     public Audio.AudioList getAudios() {
@@ -112,7 +112,7 @@ public class Album implements Serializable {
 
     @Override
     public int hashCode() {
-        return VkHelper.getVkObjectHash(vkOwnerId, vkId, Album.class);
+        return VkHelper.getVkObjectHash(ownerId, id, Album.class);
     }
 
     @Override
@@ -124,8 +124,8 @@ public class Album implements Serializable {
             return true;
         }
         Album other = (Album) o;
-        if (other.vkId != -1 && vkId != -1) {
-            return other.vkId == vkId && other.vkOwnerId == vkOwnerId;
+        if (other.id != -1 && id != -1) {
+            return other.id == id && other.ownerId == ownerId;
         }
         if (!other.title.equals(title)) {
             return false;
@@ -136,13 +136,9 @@ public class Album implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder
-                .append("Album [")
-                .append(String.format("tit"));
         return "Album [title=" + title
-                + ",vkId=" + vkId
-                + ",vkOwnerId" + vkOwnerId
+                + ",id=" + id
+                + ",ownerId" + ownerId
                 + ",audios count=(total=" + totalCount + ",locally=" + audios.size()
                 + ")]";
     }

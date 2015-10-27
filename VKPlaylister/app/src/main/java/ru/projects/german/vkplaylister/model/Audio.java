@@ -85,6 +85,16 @@ public class Audio implements Serializable {
     }
 
     @Override
+    public String toString() {
+        return "Audio ["
+                + "artist=" + artist
+                + ",title=" + title
+                + ",id=" + id
+                + ",ownerId" + ownerId
+                + "]";
+    }
+
+    @Override
     public int hashCode() {
         return VkHelper.getVkObjectHash(ownerId, id, Audio.class);
     }
@@ -98,8 +108,8 @@ public class Audio implements Serializable {
             return true;
         }
         Audio other = (Audio) o;
-        if (id != -1 && ownerId != -1) {
-            return other.id == id && other.ownerId == ownerId;
+        if (id != -1) {
+            return other.id == id;
         }
         return duration == other.duration
                 && title.equals(other.title)

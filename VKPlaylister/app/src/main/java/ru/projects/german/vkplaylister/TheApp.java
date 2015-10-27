@@ -7,6 +7,8 @@ import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKAccessTokenTracker;
 import com.vk.sdk.VKSdk;
 
+import ru.projects.german.vkplaylister.player.PlayerHelper;
+
 /**
  * Created by root on 14.10.15.
  */
@@ -14,6 +16,7 @@ public class TheApp extends Application {
     private static final String TAG = TheApp.class.getSimpleName();
 
     private static TheApp app;
+    private static PlayerHelper playerHelper;
 
     VKAccessTokenTracker vkAccessTokenTracker = new VKAccessTokenTracker() {
         @Override
@@ -33,9 +36,16 @@ public class TheApp extends Application {
         app = this;
         VKSdk.initialize(this);
         vkAccessTokenTracker.startTracking();
+        playerHelper = new PlayerHelper(this);
     }
+
+
 
     public static TheApp getApp() {
         return app;
+    }
+
+    public static PlayerHelper getPlayerHelper() {
+        return playerHelper;
     }
 }

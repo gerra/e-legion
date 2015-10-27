@@ -53,6 +53,12 @@ public class AlbumFragment extends BaseAudiosFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        getMainActivity().controller.show();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.album_menu, menu);
     }

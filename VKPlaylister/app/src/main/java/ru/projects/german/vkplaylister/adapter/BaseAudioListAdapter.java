@@ -8,10 +8,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import ru.projects.german.vkplaylister.R;
+import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.adapter.viewholder.BaseAudioViewHolder;
 import ru.projects.german.vkplaylister.adapter.viewholder.ProgressViewHolder;
 import ru.projects.german.vkplaylister.model.Audio;
-import ru.projects.german.vkplaylister.player.PlayerService;
 
 /**
  * Created on 22.10.15.
@@ -24,9 +24,6 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<Recycler
     protected static final int LOADING_TYPE = 2;
 
     protected Audio.AudioList audios = new Audio.AudioList();
-
-    private int currentPlayingPosition = -1;
-    private boolean currentIsPaused = false;
 
     protected abstract BaseAudioViewHolder getAudioViewHolder(ViewGroup parent);
 
@@ -54,31 +51,36 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<Recycler
         if (holder instanceof BaseAudioViewHolder) {
             ((BaseAudioViewHolder) holder).bindItem(getItem(position));
             final ImageView playButton = ((BaseAudioViewHolder) holder).playButton;
-            if (currentPlayingPosition == position && !currentIsPaused) {
+
+            Audio playingAudio = TheApp.getPlayerHelper().getCurrentPlayingAudio();
+            if (getItem(position).equals(playingAudio)) {
                 playButton.setImageResource(R.drawable.ic_pause_circle_filled_white_48dp);
             } else {
                 playButton.setImageResource(R.drawable.ic_play_circle_filled_white_48dp);
             }
+
             playButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (currentPlayingPosition == -1) {
-                        currentPlayingPosition = position;
-                        playButton.setImageResource(R.drawable.ic_pause_circle_filled_white_48dp);
-                        PlayerService.startPlaying(audios, currentPlayingPosition);
-                    } else {
-                        if (currentPlayingPosition == position) {
-                            currentIsPaused = !currentIsPaused;
-                            playButton.setImageResource(
-                                    currentIsPaused ? R.drawable.ic_play_circle_filled_white_48dp : R.drawable.ic_pause_circle_filled_white_48dp);
+                    int currentAudioPosition = audios.indexOf(TheApp.getPlayerHelper().getCurrentAudio());
+                    if (currentAudioPosition != -1) {
+                        if (currentAudioPosition == position) {
+                            if (TheApp.getPlayerHelper().isPlaying()) {
+                                TheApp.getPlayerHelper().pause();
+                            } else {
+                                TheApp.getPlayerHelper().resume();
+                            }
+                            notifyItemChanged(position);
                         } else {
-                            int oldPlayingPosition = currentPlayingPosition;
-                            currentPlayingPosition = position;
-                            currentIsPaused = false;
-                            notifyItemChanged(oldPlayingPosition);
-                            playButton.setImageResource(R.drawable.ic_pause_circle_filled_white_48dp);
-                            PlayerService.startPlaying(audios, currentPlayingPosition);
+                            TheApp.getPlayerHelper().play(audios, position);
+                            notifyItemChanged(position);
+                            if (TheApp.getPlayerHelper().isPlaying()) {
+                                notifyItemChanged(currentAudioPosition);
+                            }
                         }
+                    } else {
+                        TheApp.getPlayerHelper().play(audios, position);
+                        notifyItemChanged(position);
                     }
                 }
             });

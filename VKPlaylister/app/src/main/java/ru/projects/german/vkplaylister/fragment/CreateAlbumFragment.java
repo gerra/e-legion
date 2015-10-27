@@ -69,8 +69,8 @@ public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackP
         setHasOptionsMenu(true);
         createdAlbum = new Album(getAlbumTitle());
         createdAlbum.setSynchronizedWithVk(true);
-        createdAlbum.setVkId(getArguments().getInt(ALBUM_VK_ID_KEY));
-        createdAlbum.setVkOwnerId(Integer.parseInt(VKAccessToken.currentToken().userId));
+        createdAlbum.setId(getArguments().getInt(ALBUM_VK_ID_KEY));
+        createdAlbum.setOwnerId(Integer.parseInt(VKAccessToken.currentToken().userId));
     }
 
     @Nullable

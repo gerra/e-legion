@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
 
 import com.squareup.otto.Subscribe;
 import com.vk.sdk.VKAccessToken;
@@ -23,11 +24,15 @@ import ru.projects.german.vkplaylister.fragment.OnBackPressedListener;
 import ru.projects.german.vkplaylister.otto.NeedCloseFragmentEvent;
 import ru.projects.german.vkplaylister.otto.NeedOpenFragmentEvent;
 import ru.projects.german.vkplaylister.otto.Otto;
+import ru.projects.german.vkplaylister.player.MusicController;
+import ru.projects.german.vkplaylister.player.MyMediaUiControll;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private FragmentManager.OnBackStackChangedListener onBackStackChangedListener;
+
+    public MusicController controller;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +57,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
         }
+
+        controller = new MusicController(this);
+        controller.setPrevNextListeners(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "next");
+            }
+        }, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "prev");
+            }
+        });
+        controller.setAnchorView(findViewById(R.id.main_container));
+        controller.setMediaPlayer(new MyMediaUiControll());
+        controller.setEnabled(true);
     }
 
     @Override
@@ -137,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
                 && fragment instanceof OnBackPressedListener && fragment.isResumed()) {
             ((OnBackPressedListener) fragment).onBackPressed();
         } else {
+            closeCurrentFragment();
             super.onBackPressed();
         }
     }

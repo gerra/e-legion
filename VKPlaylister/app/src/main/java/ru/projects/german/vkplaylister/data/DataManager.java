@@ -98,8 +98,8 @@ public class DataManager {
                     for (int i = 0; i < items.length(); i++) {
                         JSONObject item = items.getJSONObject(i);
                         Album currentAlbum = new Album(item.getString("title"));
-                        currentAlbum.setVkId(Integer.parseInt(item.getString("id")));
-                        currentAlbum.setVkOwnerId(Integer.parseInt(item.getString("owner_id")));
+                        currentAlbum.setId(Integer.parseInt(item.getString("id")));
+                        currentAlbum.setOwnerId(Integer.parseInt(item.getString("owner_id")));
                         currentAlbum.setSynchronizedWithVk(true);
                         albums.add(currentAlbum);
                     }
@@ -111,8 +111,8 @@ public class DataManager {
         if (albums != null) {
             for (Album album : albums) {
                 Audio.AudioList audios = getAudiosFromNet(
-                        album.getVkOwnerId(),
-                        album.getVkId(),
+                        album.getOwnerId(),
+                        album.getId(),
                         false,
                         0,
                         ModernAudiosLoader.AUDIOS_PER_REQUEST
@@ -151,7 +151,7 @@ public class DataManager {
         }
         Log.d(TAG, "loadAlbumToNet(), ids=" + audioIds);
         VKParameters params = new VKParameters();
-        params.put(Constants.VK_ALBUM_ID, album.getVkId());
+        params.put(Constants.VK_ALBUM_ID, album.getId());
         params.put(Constants.VK_AUDIO_IDS, audioIds);
         VKRequest request = new VKRequest(Constants.VK_AUDIOS_MOVE_TO_ALBUM, params);
         request.executeWithListener(listener);
@@ -166,7 +166,7 @@ public class DataManager {
             return;
         }
         VKParameters params = new VKParameters();
-        params.put(Constants.VK_ALBUM_ID, album.getVkId());
+        params.put(Constants.VK_ALBUM_ID, album.getId());
         VKRequest request = new VKRequest(Constants.VK_AUDIOS_DELETE_ALBUM, params);
         request.executeWithListener(listener);
     }
