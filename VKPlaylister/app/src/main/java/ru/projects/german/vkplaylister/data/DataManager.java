@@ -1,8 +1,11 @@
 package ru.projects.german.vkplaylister.data;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.vk.sdk.VKAccessToken;
+import com.vk.sdk.api.VKBatchRequest;
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
@@ -13,7 +16,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ru.projects.german.vkplaylister.Constants;
+import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.VkHelper;
 import ru.projects.german.vkplaylister.loader.ModernAudiosLoader;
 import ru.projects.german.vkplaylister.model.Album;
@@ -25,7 +32,17 @@ import ru.projects.german.vkplaylister.model.Audio;
  * @author German Berezhko, gerralizza@gmail.com
  */
 public class DataManager {
+    public static abstract class MyRequestListener {
+        public void onComplete(Object object) {}
+        public void onError(String error) {}
+    }
+
     private static final String TAG = DataManager.class.getSimpleName();
+
+    private static final String PREFERENCES_KEY = "PLAYLISTER_PREFERENCES";
+    private static final String ALBUM_COUNT_KEY = "ALBUM_COUNT";
+    private static final String ALBUM_KEY = "ALBUM";
+    private static final String SYNC_WITH_VK_KEY = "SYNC_WITH_VK";
 
     private static Audio.AudioList getAudiosByRequest(VKRequest request) {
         final Audio.AudioList[] audios = new Audio.AudioList[1];
@@ -48,6 +65,29 @@ public class DataManager {
             }
         });
         return audios[0];
+    }
+
+    private static void getAudiosByRequestAsynchronously(VKRequest request, final MyRequestListener listener) {
+        request.executeSyncWithListener(new VKRequest.VKRequestListener() {
+            @Override
+            public void onComplete(VKResponse response) {
+                int totalCount = -1;
+                Audio.AudioList audios = new Audio.AudioList();
+                try {
+                    VkAudioArray vkAudios = (VkAudioArray) new VkAudioArray().parse(response.json);
+                    audios = new Audio.AudioList(vkAudios);
+                    totalCount = response.json
+                            .getJSONObject("response")
+                            .getInt("count");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if (totalCount != -1) {
+                    audios.setTotalCount(totalCount);
+                }
+                listener.onComplete(audios);
+            }
+        });
     }
 
     public static Audio.AudioList getAudiosFromNet(int ownerId,
@@ -80,8 +120,92 @@ public class DataManager {
         return getAudiosByRequest(request);
     }
 
+    public static boolean isSyncWithVk() {
+        return TheApp.getApp().getSharedPreferences(PREFERENCES_KEY, Context.MODE_PRIVATE)
+                .getBoolean(SYNC_WITH_VK_KEY, false);
+    }
 
-    public static Album.AlbumList getAlbumList(int count, int offset) {
+    public static void syncWithVk(final MyRequestListener listener) {
+        VKParameters params = new VKParameters();
+        params.put(Constants.OWNER_ID, VKAccessToken.currentToken().userId);
+        final VKRequest albumsRequest = new VKRequest(Constants.VK_AUDIOS_GET_ALBUMS, params);
+        albumsRequest.executeWithListener(new VKRequest.VKRequestListener() {
+            @Override
+            public void onComplete(final VKResponse response) {
+                final Album.AlbumList albums = new Album.AlbumList();
+                try {
+                    JSONArray items = response.json.getJSONObject("response").getJSONArray("items");
+                    for (int i = 0; i < items.length(); i++) {
+                        JSONObject item = items.getJSONObject(i);
+                        Album currentAlbum = new Album(item.getString("title"));
+                        currentAlbum.setVkId(Integer.parseInt(item.getString("id")));
+                        currentAlbum.setOwnerId(Integer.parseInt(item.getString("owner_id")));
+                        currentAlbum.setSynchronizedWithVk(true);
+                        albums.add(currentAlbum);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                List<VKRequest> albumRequests = new ArrayList<>(albums.size());
+                for (final Album album : albums) {
+                    VKRequest request = VkHelper.getAudioRequest(
+                            album.getOwnerId(),
+                            album.getVkId(),
+                            false,
+                            0,
+                            0
+                    );
+                    albumRequests.add(request);
+                }
+                VKBatchRequest batchRequest = new VKBatchRequest(albumRequests.toArray(new VKRequest[albumRequests.size()]));
+                batchRequest.executeWithListener(new VKBatchRequest.VKBatchRequestListener() {
+                    @Override
+                    public void onComplete(VKResponse[] responses) {
+                        // save the order of adding
+                        for (int i = responses.length - 1; i >= 0; i--) {
+                            VKResponse response = responses[i];
+                            int totalCount = -1;
+                            Audio.AudioList audios = new Audio.AudioList();
+                            try {
+                                VkAudioArray vkAudios = (VkAudioArray) new VkAudioArray().parse(response.json);
+                                audios = new Audio.AudioList(vkAudios);
+                                totalCount = response.json
+                                        .getJSONObject("response")
+                                        .getInt("count");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            if (totalCount == -1) {
+                                totalCount = audios.size();
+                            }
+                            audios.setTotalCount(totalCount);
+                            albums.get(i).setAudios(audios);
+                            albums.get(i).setTotalCount(totalCount);
+                            saveAlbum(albums.get(i));
+                        }
+                        TheApp.getApp().getSharedPreferences(PREFERENCES_KEY, Context.MODE_PRIVATE)
+                                .edit()
+                                .putBoolean(SYNC_WITH_VK_KEY, true)
+                                .apply();
+                        listener.onComplete(albums);
+                    }
+
+                    @Override
+                    public void onError(VKError error) {
+                        listener.onError(error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(VKError error) {
+                listener.onError(error.toString());
+            }
+        });
+    }
+
+    public static Album.AlbumList getAlbumListFromNet(int count, int offset) {
         VKParameters params = new VKParameters();
         params.put(Constants.OWNER_ID, VKAccessToken.currentToken().userId);
         params.put(Constants.COUNT, String.valueOf(count));
@@ -98,10 +222,11 @@ public class DataManager {
                     for (int i = 0; i < items.length(); i++) {
                         JSONObject item = items.getJSONObject(i);
                         Album currentAlbum = new Album(item.getString("title"));
-                        currentAlbum.setId(Integer.parseInt(item.getString("id")));
+                        currentAlbum.setVkId(Integer.parseInt(item.getString("id")));
                         currentAlbum.setOwnerId(Integer.parseInt(item.getString("owner_id")));
                         currentAlbum.setSynchronizedWithVk(true);
                         albums.add(currentAlbum);
+                        saveAlbum(currentAlbum);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -112,7 +237,7 @@ public class DataManager {
             for (Album album : albums) {
                 Audio.AudioList audios = getAudiosFromNet(
                         album.getOwnerId(),
-                        album.getId(),
+                        album.getVkId(),
                         false,
                         0,
                         ModernAudiosLoader.AUDIOS_PER_REQUEST
@@ -120,11 +245,7 @@ public class DataManager {
                 if (audios != null) {
                     album.setAudios(audios);
                     int totalCount = audios.getTotalCount();
-                    if (totalCount != -1) {
-                        album.setTotalCount(totalCount);
-                    } else {
-                        album.setTotalCount(audios.size());
-                    }
+                    album.setTotalCount(totalCount);
                 }
             }
         }
@@ -147,11 +268,11 @@ public class DataManager {
             if (i != 0) {
                 audioIds += ",";
             }
-            audioIds += audio.getId();
+            audioIds += audio.getOwnerId() + "_" + audio.getId();
         }
         Log.d(TAG, "loadAlbumToNet(),album=" + album.toString() + ",ids=" + audioIds);
         VKParameters params = new VKParameters();
-        params.put(Constants.VK_ALBUM_ID, album.getId());
+        params.put(Constants.VK_ALBUM_ID, album.getVkId());
         params.put(Constants.VK_AUDIO_IDS, audioIds);
         VKRequest request = new VKRequest(Constants.VK_AUDIOS_MOVE_TO_ALBUM, params);
         request.executeWithListener(listener);
@@ -159,15 +280,17 @@ public class DataManager {
 
     public static void removeAlbumFromNet(Album album, VKRequest.VKRequestListener listener) {
         if (album == null) {
+            listener.onError(null);
             return;
         }
-        Log.d(TAG, "removeAlbumFromNet(), album=" + album.toString());
+        Log.d(TAG, "removeAlbumFromNet(), " + album.toString());
         if (!album.isSynchronizedWithVk()) {
             Log.e(TAG, "Album " + album.toString() + " is not synchronized with vk");
+            listener.onError(null);
             return;
         }
         VKParameters params = new VKParameters();
-        params.put(Constants.VK_ALBUM_ID, album.getId());
+        params.put(Constants.VK_ALBUM_ID, album.getVkId());
         VKRequest request = new VKRequest(Constants.VK_AUDIOS_DELETE_ALBUM, params);
         request.executeWithListener(listener);
     }
@@ -193,5 +316,53 @@ public class DataManager {
             }
         });
         return url[0];
+    }
+
+    public static void saveAlbum(Album album) {
+        Log.d(TAG, "saveAlbum(), " + album);
+        SharedPreferences preferences = TheApp.getApp().getSharedPreferences(PREFERENCES_KEY, Context.MODE_PRIVATE);
+        int albumLocalId;
+        boolean isNew = false;
+        if (album.getLocalId() == -1) {
+            albumLocalId = preferences.getInt(ALBUM_COUNT_KEY, 0) + 1;
+            album.setLocalId(albumLocalId);
+            isNew = true;
+        } else {
+            albumLocalId = album.getLocalId();
+        }
+        String jsonAlbum = TheApp.getApp().getGson().toJson(album);
+        SharedPreferences.Editor editor = preferences.edit();
+        if (isNew) {
+            editor.putInt(ALBUM_COUNT_KEY, albumLocalId);
+        }
+        editor.putString(ALBUM_KEY + "_" + albumLocalId, jsonAlbum);
+        editor.apply();
+    }
+
+    public static Album.AlbumList getAlbumList() {
+        Log.d(TAG, "getAlbumList()");
+        SharedPreferences preferences = TheApp.getApp().getSharedPreferences(PREFERENCES_KEY, Context.MODE_PRIVATE);
+        int count = preferences.getInt(ALBUM_COUNT_KEY, 0);
+        Album.AlbumList albums = new Album.AlbumList();
+        for (int i = count; i >= 1; i--) {
+            String jsonAlbum = preferences.getString(ALBUM_KEY + "_" + i, null);
+            if (jsonAlbum != null) {
+                albums.add(TheApp.getGson().fromJson(jsonAlbum, Album.class));
+            }
+        }
+        return albums;
+    }
+
+    public static void removeAlbum(Album album) {
+        Log.d(TAG, "removeAlbum(), " + album.toString());
+        album.clear();
+        SharedPreferences preferences = TheApp.getApp().getSharedPreferences(PREFERENCES_KEY, Context.MODE_PRIVATE);
+        int localId = album.getLocalId();
+        if (localId == -1) {
+            throw new IllegalArgumentException("Album does not have localId. " + album.toString());
+        }
+        preferences.edit()
+                .remove(ALBUM_KEY + "_" + localId)
+                .apply();
     }
 }

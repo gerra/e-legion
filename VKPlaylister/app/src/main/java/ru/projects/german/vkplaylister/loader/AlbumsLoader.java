@@ -27,7 +27,7 @@ public class AlbumsLoader extends AsyncTaskLoader<Album.AlbumList> {
     @Override
     public Album.AlbumList loadInBackground() {
         Log.d(TAG, "loadInBackground()");
-        Album.AlbumList albums = DataManager.getAlbumList(ALBUMS_PER_REQUEST, currentOffset);
+        Album.AlbumList albums = DataManager.getAlbumListFromNet(ALBUMS_PER_REQUEST, currentOffset);
         wasStarted = true;
         return albums;
     }

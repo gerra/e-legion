@@ -75,22 +75,27 @@ public class AlbumFragment extends BaseAudiosFragment {
             DataManager.removeAlbumFromNet(albumToDelete, new VKRequest.VKRequestListener() {
                 @Override
                 public void onComplete(VKResponse response) {
+                    DataManager.removeAlbum(albumToDelete);
                     getFragmentManager()
                             .beginTransaction()
                             .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
                             .commit();
                     getMainActivity().closeCurrentFragment();
-                    albumToDelete.clear();
                     Otto.post(new AlbumDeletedEvent(albumToDelete));
                 }
 
                 @Override
                 public void onError(VKError error) {
-                    Log.e(TAG, error.toString());
+                    if (error != null) {
+                        Log.e(TAG, error.toString());
+                    }
+                    DataManager.removeAlbum(albumToDelete);
                     getFragmentManager()
                             .beginTransaction()
                             .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
                             .commit();
+                    getMainActivity().closeCurrentFragment();
+                    Otto.post(new AlbumDeletedEvent(albumToDelete));
                 }
             });
             return true;

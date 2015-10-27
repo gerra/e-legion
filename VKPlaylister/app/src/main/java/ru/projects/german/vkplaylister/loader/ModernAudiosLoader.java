@@ -49,7 +49,7 @@ public class ModernAudiosLoader extends AsyncTaskLoader<Audio.AudioList> {
         if (loadType == LoadType.BY_ALBUM) {
             audios = DataManager.getAudiosFromNet(
                     album != null ? album.getOwnerId() : Integer.parseInt(VKAccessToken.currentToken().userId),
-                    album != null ? album.getId() : -1,
+                    album != null ? album.getVkId() : -1,
                     false,
                     currentOffset,
                     AUDIOS_PER_REQUEST

@@ -10,11 +10,15 @@
     </plurals>
 
     <string name="dialog_wait_title">Please wait...</string>
+    <string name="dialog_positive">Continue</string>
+    <string name="dialog_negative">Cancel</string>
     <string name="add_audios_to_album_wait_message">Adding audios to %s...</string>
     <string name="remove_album_wait_message">Removing %s...</string>
     <string name="create_album_dialog_wait_message">Creating empty album...</string>
     <string name="create_album_dialog_title">Create playlist</string>
     <string name="create_album_dialog_message">Enter playlist name</string>
-    <string name="create_album_dialog_positive">Continue</string>
-    <string name="create_album_dialog_negative">Cancel</string>
+    <string name="sync_with_vk_dialog_title">Synchronization with VK</string>
+    <string name="sync_with_vk_dialog_message">Do you want get your VK albums?</string>
+    <string name="sync_with_vk_dialog_running">Synchronization is running...</string>
+
 </resources>

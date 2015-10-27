@@ -51,6 +51,8 @@ public class PlayerService extends Service {
     });
     private Messenger messenger = new Messenger(handler);
 
+    private NotificationCompat.Builder notificationBuilder;
+
     private Audio currentAudio;
     private MediaPlayer mediaPlayer;
     private Messenger playerHelper;
@@ -58,31 +60,42 @@ public class PlayerService extends Service {
     private NotificationCompat.Action generateAction(int icon, String intentAction) {
         Intent intent = new Intent(getApplicationContext(), PlayerService.class);
         intent.setAction(intentAction);
-        PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 1, intent, 0);
+        PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 2323, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return new NotificationCompat.Action.Builder(icon, "", pendingIntent)
                 .build();
     }
 
     private Notification buildNotification() {
-        NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle();
-        style.setShowActionsInCompactView(0, 1, 2);
+        if (notificationBuilder == null) {
+            notificationBuilder = new NotificationCompat.Builder(this);
+            NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle();
+            style.setShowActionsInCompactView(0, 1, 2);
+            notificationBuilder.setStyle(style)
+                    .setSmallIcon(R.drawable.ic_play_circle_filled_white_48dp)
+                    .setShowWhen(false)
+                    .addAction(generateAction(android.R.drawable.ic_media_previous, PlayerHelper.ACTION_PREV))
+                    .addAction(generateAction(android.R.drawable.ic_media_play, PlayerHelper.ACTION_PLAY_PAUSE))
+                    .addAction(generateAction(android.R.drawable.ic_media_next, PlayerHelper.ACTION_NEXT))
+                    .setContentTitle("")
+                    .setContentText("");
+        }
 
-        Notification notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_play_circle_filled_white_48dp)
-                .setContentTitle(currentAudio.getTitle())
-                .setContentText(currentAudio.getArtist())
-                .setStyle(style)
-                .addAction(generateAction(android.R.drawable.ic_media_previous, PlayerHelper.ACTION_PREV))
-                .addAction(generateAction(mediaPlayer.isPlaying() ? android.R.drawable.ic_media_pause
-                        : android.R.drawable.ic_media_play, PlayerHelper.ACTION_PLAY_PAUSE))
-                .addAction(generateAction(android.R.drawable.ic_media_next, PlayerHelper.ACTION_NEXT))
-                .build();
-        return notification;
+        if (!notificationBuilder.mContentTitle.equals(currentAudio.getTitle())) {
+            notificationBuilder.setContentTitle(currentAudio.getTitle());
+        }
+        if (!notificationBuilder.mContentText.equals(currentAudio.getArtist())) {
+            notificationBuilder.setContentText(currentAudio.getArtist());
+        }
+        notificationBuilder.mActions.set(1, generateAction(mediaPlayer.isPlaying() ? android.R.drawable.ic_media_pause
+                : android.R.drawable.ic_media_play, PlayerHelper.ACTION_PLAY_PAUSE));
+
+        return notificationBuilder.build();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction() != null && mediaPlayer != null) {
+            Log.d(TAG, "onStartCommand(), action=" + intent.getAction());
             if (intent.getAction().equals(PlayerHelper.ACTION_NEXT)) {
                 playNext();
             } else if (intent.getAction().equals(PlayerHelper.ACTION_PREV)) {

@@ -34,16 +34,18 @@ public class Album implements Serializable {
     private boolean synchronizedWithVk;
 
     /**
-     * id of remote album
+     * vkId of remote album
      * valid if synchronizedWithVk = true
      */
-    private int id = -1;
+    private int vkId = -1;
 
     /**
-     * owner id of remote album
+     * owner vkId of remote album
      * valid if synchronizedWithVk = true
      */
     private int ownerId = -1;
+
+    private int localId = -1;
 
     public Album(String title) {
         this.title = title;
@@ -62,12 +64,12 @@ public class Album implements Serializable {
         return title;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setVkId(int vkId) {
+        this.vkId = vkId;
     }
 
-    public int getId() {
-        return id;
+    public int getVkId() {
+        return vkId;
     }
 
     public void setTotalCount(int totalCount) {
@@ -106,13 +108,21 @@ public class Album implements Serializable {
         return audios.size();
     }
 
+    public int getLocalId() {
+        return localId;
+    }
+
+    public void setLocalId(int localId) {
+        this.localId = localId;
+    }
+
     public void clear() {
         audios.clear();
     }
 
     @Override
     public int hashCode() {
-        return VkHelper.getVkObjectHash(ownerId, id, Album.class);
+        return VkHelper.getVkObjectHash(ownerId, vkId, Album.class);
     }
 
     @Override
@@ -124,8 +134,11 @@ public class Album implements Serializable {
             return true;
         }
         Album other = (Album) o;
-        if (other.id != -1 && id != -1) {
-            return other.id == id && other.ownerId == ownerId;
+        if (other.vkId != -1 && vkId != -1) {
+            return other.vkId == vkId && other.ownerId == ownerId;
+        }
+        if (other.localId != -1 && localId != -1) {
+            return localId == other.localId;
         }
         if (!other.title.equals(title)) {
             return false;
@@ -137,8 +150,10 @@ public class Album implements Serializable {
     @Override
     public String toString() {
         return "Album [title=" + title
-                + ",id=" + id
+                + ",isSynchronized=" + synchronizedWithVk
+                + ",vkId=" + vkId
                 + ",ownerId=" + ownerId
+                + ",localId=" + localId
                 + ",audios count=(total=" + totalCount + ",locally=" + audios.size()
                 + ")]";
     }

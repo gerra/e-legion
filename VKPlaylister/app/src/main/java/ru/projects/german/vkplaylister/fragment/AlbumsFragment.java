@@ -15,15 +15,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.squareup.otto.Subscribe;
+
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.adapter.AlbumListAdapter;
 import ru.projects.german.vkplaylister.adapter.RecyclerItemClickListener;
+import ru.projects.german.vkplaylister.data.DataManager;
 import ru.projects.german.vkplaylister.fragment.dialog.AlbumTitleDialogFragment;
+import ru.projects.german.vkplaylister.fragment.dialog.ProgressDialogFragment;
+import ru.projects.german.vkplaylister.fragment.dialog.SyncWithVkDialogFragment;
 import ru.projects.german.vkplaylister.loader.AlbumsLoader;
 import ru.projects.german.vkplaylister.model.Album;
 import ru.projects.german.vkplaylister.otto.Otto;
+import ru.projects.german.vkplaylister.otto.SyncWithVkEvent;
 
 /**
  * Created on 17.10.15.
@@ -44,11 +50,24 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     @Override
+    public void onStart() {
+        Otto.register(this);
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        Otto.unregister(this);
+        super.onStop();
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         if (adapter == null) {
             adapter = new AlbumListAdapter();
+            adapter.addAlbums(DataManager.getAlbumList());
         }
         if (onItemClickListener == null) {
             onItemClickListener = new RecyclerItemClickListener(TheApp.getApp(), new RecyclerItemClickListener.OnItemClickListener() {
@@ -70,6 +89,13 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
             });
         }
         Otto.register(adapter);
+
+        if (savedInstanceState == null) {
+            if (!DataManager.isSyncWithVk()) {
+                SyncWithVkDialogFragment fragment = new SyncWithVkDialogFragment();
+                fragment.show(getFragmentManager(), SyncWithVkDialogFragment.TAG);
+            }
+        }
     }
 
     @Override
@@ -113,7 +139,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(R.id.albums_loader, null, this);
+        //getLoaderManager().initLoader(R.id.albums_loader, null, this);
     }
 
     @Nullable
@@ -151,5 +177,40 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
 
     public MainActivity getMainActivity() {
         return (MainActivity) getActivity();
+    }
+
+    @SuppressWarnings("unused")
+    @Subscribe
+    public void onSyncWithVk(SyncWithVkEvent event) {
+        ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
+                getResources().getString(R.string.dialog_wait_title),
+                getResources().getString(R.string.sync_with_vk_dialog_running)
+        );
+        progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
+        DataManager.syncWithVk(new DataManager.MyRequestListener() {
+            @Override
+            public void onComplete(Object object) {
+                Fragment progressDialog = getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG);
+                if (progressDialog != null) {
+                    getFragmentManager().beginTransaction()
+                            .remove(progressDialog)
+                            .commit();
+                }
+                if (adapter != null) {
+                    adapter.addAlbums((Album.AlbumList) object);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, error);
+                Fragment progressDialog = getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG);
+                if (progressDialog != null) {
+                    getFragmentManager().beginTransaction()
+                            .remove(progressDialog)
+                            .commit();
+                }
+            }
+        });
     }
 }

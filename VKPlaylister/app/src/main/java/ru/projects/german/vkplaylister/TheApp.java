@@ -3,6 +3,8 @@ package ru.projects.german.vkplaylister;
 import android.app.Application;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKAccessTokenTracker;
 import com.vk.sdk.VKSdk;
@@ -17,6 +19,7 @@ public class TheApp extends Application {
 
     private static TheApp app;
     private static PlayerHelper playerHelper;
+    private static Gson gson;
 
     VKAccessTokenTracker vkAccessTokenTracker = new VKAccessTokenTracker() {
         @Override
@@ -39,7 +42,14 @@ public class TheApp extends Application {
         playerHelper = new PlayerHelper(this);
     }
 
-
+    public static Gson getGson() {
+        if (gson == null) {
+            gson = new GsonBuilder()
+                    .serializeNulls()
+                    .create();
+        }
+        return gson;
+    }
 
     public static TheApp getApp() {
         return app;

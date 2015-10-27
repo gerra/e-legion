@@ -1,6 +1,5 @@
 package ru.projects.german.vkplaylister.adapter;
 
-import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,12 +8,10 @@ import android.view.ViewGroup;
 
 import com.squareup.otto.Subscribe;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.adapter.viewholder.AlbumViewHolder;
 import ru.projects.german.vkplaylister.model.Album;
+import ru.projects.german.vkplaylister.otto.AlbumChangedEvent;
 import ru.projects.german.vkplaylister.otto.AlbumCreatedEvent;
 import ru.projects.german.vkplaylister.otto.AlbumDeletedEvent;
 
@@ -26,11 +23,7 @@ import ru.projects.german.vkplaylister.otto.AlbumDeletedEvent;
 public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
     private static final String TAG = AlbumListAdapter.class.getSimpleName();
 
-    private Handler recentlyDeletedEraser = new Handler();
-
     private Album.AlbumList albums = new Album.AlbumList();
-    // is created because of after deleting album, vk is still return it to me
-    private Set<Album> recentlyDeleted = new HashSet<>();
 
     @Override
     public AlbumViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -52,9 +45,7 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
         Log.d(TAG, "attempt to add " + albumsToAdd.size() + " albums");
         Album.AlbumList newAlbums = new Album.AlbumList();
         for (Album album : albumsToAdd) {
-            if (!recentlyDeleted.contains(album) && !albums.contains(album)) {
-                newAlbums.add(album);
-            }
+            newAlbums.add(album);
         }
         int added = newAlbums.size();
         Log.d(TAG, "added " + added + " albums");
@@ -76,16 +67,6 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
             albums.remove(i);
             notifyItemRemoved(i);
         }
-        recentlyDeleted.add(album);
-//        recentlyDeletedEraser.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.d(TAG, "recently deleted erasing");
-//                if (recentlyDeleted != null && album != null) {
-//                    recentlyDeleted.remove(album);
-//                }
-//            }
-//        }, 5_000);
         Log.d(TAG, "album deleted: " + album.toString());
     }
 
@@ -93,11 +74,24 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
     @Subscribe
     public void onCreateAlbum(AlbumCreatedEvent event) {
         final Album album = event.getAlbum();
-        int i = albums.findAlbumPosition(album);
+        int i = albums.indexOf(album);
         if (i == -1) {
             albums.add(0, album);
             notifyItemInserted(i);
         }
         Log.d(TAG, "album created: " + album.toString());
+    }
+
+    @SuppressWarnings("unused")
+    @Subscribe
+    public void onAlbumChanged(AlbumChangedEvent event) {
+        final Album changedAlbum = event.getAlbum();
+        for (int i = 0; i < albums.size(); i++) {
+            Album album = albums.get(i);
+            if (album.getLocalId() == changedAlbum.getLocalId()) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
     }
 }

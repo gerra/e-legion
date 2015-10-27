@@ -13,23 +13,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.vk.sdk.VKAccessToken;
-import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKRequest;
-import com.vk.sdk.api.VKResponse;
-
 import java.util.Set;
 
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.SmartOnQueryTextListener;
 import ru.projects.german.vkplaylister.adapter.SelectAudioAdapter;
 import ru.projects.german.vkplaylister.data.DataManager;
-import ru.projects.german.vkplaylister.fragment.dialog.ProgressDialogFragment;
 import ru.projects.german.vkplaylister.loader.ModernAudiosLoader;
 import ru.projects.german.vkplaylister.model.Album;
 import ru.projects.german.vkplaylister.model.Audio;
 import ru.projects.german.vkplaylister.otto.AlbumCreatedEvent;
-import ru.projects.german.vkplaylister.otto.AlbumDeletedEvent;
 import ru.projects.german.vkplaylister.otto.Otto;
 
 /**
@@ -40,21 +33,15 @@ import ru.projects.german.vkplaylister.otto.Otto;
 public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackPressedListener {
     private static final String TAG = CreateAlbumFragment.class.getSimpleName();
     private static final String ALBUM_TITLE_KEY = "ALBUM_TITLE_KEY";
-    private static final String ALBUM_VK_ID_KEY = "ALBUM_VK_ID_KEY";
 
-    public static CreateAlbumFragment newInstance(String albumTitle, int albumVkId) {
+//    private Album createdAlbum;
+
+    public static CreateAlbumFragment newInstance(String albumTitle) {
         CreateAlbumFragment fragment = new CreateAlbumFragment();
         Bundle args = new Bundle();
         args.putString(ALBUM_TITLE_KEY, albumTitle);
-        args.putInt(ALBUM_VK_ID_KEY, albumVkId);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    private Album createdAlbum;
-
-    public static CreateAlbumFragment newInstance(String albumTitle) {
-        return newInstance(albumTitle, -1);
     }
 
     private FloatingActionButton showSelectedAudiosButton;
@@ -67,10 +54,10 @@ public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackP
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        createdAlbum = new Album(getAlbumTitle());
-        createdAlbum.setSynchronizedWithVk(true);
-        createdAlbum.setId(getArguments().getInt(ALBUM_VK_ID_KEY));
-        createdAlbum.setOwnerId(Integer.parseInt(VKAccessToken.currentToken().userId));
+//        createdAlbum = new Album(getAlbumTitle());
+//        createdAlbum.setSynchronizedWithVk(true);
+//        createdAlbum.setVkId(getArguments().getInt(ALBUM_VK_ID_KEY));
+//        createdAlbum.setOwnerId(Integer.parseInt(VKAccessToken.currentToken().userId));
     }
 
     @Nullable
@@ -87,37 +74,40 @@ public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackP
 
     @Override
     protected void onSelectionFinished(Set<Audio> selectedAudios) {
+        final Album createdAlbum = new Album(getAlbumTitle());
         for (Audio audio : selectedAudios) {
             createdAlbum.addAudio(audio);
         }
         createdAlbum.getAudios().setTotalCount(selectedAudios.size());
         createdAlbum.setTotalCount(selectedAudios.size());
-
-        final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
-                getResources().getString(R.string.dialog_wait_title),
-                getResources().getString(R.string.add_audios_to_album_wait_message, createdAlbum.getTitle()));
-        progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
-        DataManager.loadAlbumToNet(createdAlbum, new VKRequest.VKRequestListener() {
-            @Override
-            public void onComplete(VKResponse response) {
-                Log.d(TAG, "Album was loaded, " + response.json.toString());
-                Otto.post(new AlbumCreatedEvent(createdAlbum));
-                getFragmentManager()
-                        .beginTransaction()
-                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
-                        .commit();
-                getMainActivity().openFragment(AlbumFragment.newInstance(createdAlbum, true));
-            }
-
-            @Override
-            public void onError(VKError error) {
-                Log.e(TAG, error.toString());
-                getFragmentManager()
-                        .beginTransaction()
-                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
-                        .commit();
-            }
-        });
+        DataManager.saveAlbum(createdAlbum);
+        getMainActivity().openFragment(AlbumFragment.newInstance(createdAlbum, true));
+        Otto.post(new AlbumCreatedEvent(createdAlbum));
+//        final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
+//                getResources().getString(R.string.dialog_wait_title),
+//                getResources().getString(R.string.add_audios_to_album_wait_message, createdAlbum.getTitle()));
+//        progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
+//        DataManager.loadAlbumToNet(createdAlbum, new VKRequest.VKRequestListener() {
+//            @Override
+//            public void onComplete(VKResponse response) {
+//                Log.d(TAG, "Album was loaded, " + response.json.toString());
+//                Otto.post(new AlbumCreatedEvent(createdAlbum));
+//                getFragmentManager()
+//                        .beginTransaction()
+//                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+//                        .commit();
+//                getMainActivity().openFragment(AlbumFragment.newInstance(createdAlbum, true));
+//            }
+//
+//            @Override
+//            public void onError(VKError error) {
+//                Log.e(TAG, error.toString());
+//                getFragmentManager()
+//                        .beginTransaction()
+//                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+//                        .commit();
+//            }
+//        });
     }
 
     @Override
@@ -191,29 +181,29 @@ public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackP
             searchView.clearFocus();
             return;
         }
-
-        ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
-                getResources().getString(R.string.dialog_wait_title),
-                getResources().getString(R.string.remove_album_wait_message, createdAlbum.getTitle())
-        );
-        progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
-        DataManager.removeAlbumFromNet(createdAlbum, new VKRequest.VKRequestListener() {
-            @Override
-            public void onComplete(VKResponse response) {
-                Otto.post(new AlbumDeletedEvent(createdAlbum));
-                getFragmentManager().beginTransaction()
-                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
-                        .commit();
-                getMainActivity().closeCurrentFragment();
-            }
-
-            @Override
-            public void onError(VKError error) {
-                getFragmentManager().beginTransaction()
-                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
-                        .commit();
-                getMainActivity().closeCurrentFragment();
-            }
-        });
+        getMainActivity().closeCurrentFragment();
+//        ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
+//                getResources().getString(R.string.dialog_wait_title),
+//                getResources().getString(R.string.remove_album_wait_message, createdAlbum.getTitle())
+//        );
+//        progressDialog.show(getFragmentManager(), ProgressDialogFragment.TAG);
+//        DataManager.removeAlbumFromNet(createdAlbum, new VKRequest.VKRequestListener() {
+//            @Override
+//            public void onComplete(VKResponse response) {
+//                Otto.post(new AlbumDeletedEvent(createdAlbum));
+//                getFragmentManager().beginTransaction()
+//                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+//                        .commit();
+//                getMainActivity().closeCurrentFragment();
+//            }
+//
+//            @Override
+//            public void onError(VKError error) {
+//                getFragmentManager().beginTransaction()
+//                        .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
+//                        .commit();
+//                getMainActivity().closeCurrentFragment();
+//            }
+//        });
     }
 }

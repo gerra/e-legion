@@ -31,8 +31,6 @@ public class PlayerHelper implements ServiceConnection {
     public static final int PLAY_PREV      = 6;
 
     public static final String ACTION_PLAY_PAUSE = "ACTION_PLAY_PAUSE";
-    public static final String ACTION_RESUME = "ACTION_RESUME";
-    public static final String ACTION_PAUSE = "ACTION_PAUSE";
     public static final String ACTION_PREV = "ACTION_PREV";
     public static final String ACTION_NEXT = "ACTION_NEXT";
 
@@ -46,6 +44,9 @@ public class PlayerHelper implements ServiceConnection {
             switch (msg.what) {
                 case PLAY_NEXT:
                     playNext();
+                    break;
+                case PLAY_PREV:
+                    playPrev();
                     break;
                 default:
                     Log.e(TAG, "Unexpected message: " + msg.toString());
@@ -105,6 +106,14 @@ public class PlayerHelper implements ServiceConnection {
         currentPlayPosition++;
         if (currentPlayPosition >= order.size()) {
             currentPlayPosition = 0;
+        }
+        play(order.get(currentPlayPosition));
+    }
+
+    public void playPrev() {
+        currentPlayPosition--;
+        if (currentPlayPosition < 0) {
+            currentPlayPosition = order.size() - 1;
         }
         play(order.get(currentPlayPosition));
     }

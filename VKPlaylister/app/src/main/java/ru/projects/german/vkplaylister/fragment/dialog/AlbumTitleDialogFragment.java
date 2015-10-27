@@ -5,26 +5,14 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.widget.EditText;
 
-import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKRequest;
-import com.vk.sdk.api.VKResponse;
-
-import org.json.JSONException;
-
-import ru.projects.german.vkplaylister.Constants;
 import ru.projects.german.vkplaylister.R;
-import ru.projects.german.vkplaylister.data.DataManager;
+import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.fragment.CreateAlbumFragment;
-import ru.projects.german.vkplaylister.otto.NeedCloseFragmentEvent;
-import ru.projects.german.vkplaylister.otto.NeedOpenFragmentEvent;
-import ru.projects.german.vkplaylister.otto.Otto;
 
 /**
  * Created on 24.10.15.
@@ -45,40 +33,41 @@ public class AlbumTitleDialogFragment extends DialogFragment {
                 .setTitle(R.string.create_album_dialog_title)
                 .setMessage(R.string.create_album_dialog_message)
                 .setView(editText)
-                .setPositiveButton(R.string.create_album_dialog_positive, new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.dialog_positive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         final String title = editText.getText().toString();
-                        final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
-                                getResources().getString(R.string.dialog_wait_title),
-                                getResources().getString(R.string.create_album_dialog_wait_message)
-                        );
-                        final FragmentManager fragmentManager = getFragmentManager();
-                        progressDialog.show(fragmentManager, ProgressDialogFragment.TAG);
-                        DataManager.createEmptyAlbumByTitleAndGetId(title, new VKRequest.VKRequestListener() {
-                            @Override
-                            public void onComplete(VKResponse response) {
-                                int albumId = -1;
-                                try {
-                                    albumId = response.json
-                                            .getJSONObject("response")
-                                            .getInt(Constants.VK_ALBUM_ID);
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                Otto.post(new NeedCloseFragmentEvent(ProgressDialogFragment.TAG));
-                                Otto.post(new NeedOpenFragmentEvent(CreateAlbumFragment.newInstance(title, albumId), true));
-                            }
-
-                            @Override
-                            public void onError(VKError error) {
-                                Log.e(TAG, error.toString());
-                                Otto.post(new NeedCloseFragmentEvent(ProgressDialogFragment.TAG));
-                            }
-                        });
+                        ((MainActivity) getActivity()).openFragment(CreateAlbumFragment.newInstance(title), true);
+//                        final ProgressDialogFragment progressDialog = ProgressDialogFragment.newInstance(
+//                                getResources().getString(R.string.dialog_wait_title),
+//                                getResources().getString(R.string.create_album_dialog_wait_message)
+//                        );
+//                        final FragmentManager fragmentManager = getFragmentManager();
+//                        progressDialog.show(fragmentManager, ProgressDialogFragment.TAG);
+//                        DataManager.createEmptyAlbumByTitleAndGetId(title, new VKRequest.VKRequestListener() {
+//                            @Override
+//                            public void onComplete(VKResponse response) {
+//                                int albumId = -1;
+//                                try {
+//                                    albumId = response.json
+//                                            .getJSONObject("response")
+//                                            .getInt(Constants.VK_ALBUM_ID);
+//                                } catch (JSONException e) {
+//                                    e.printStackTrace();
+//                                }
+//                                Otto.post(new NeedCloseFragmentEvent(ProgressDialogFragment.TAG));
+//                                Otto.post(new NeedOpenFragmentEvent(CreateAlbumFragment.newInstance(title, albumId), true));
+//                            }
+//
+//                            @Override
+//                            public void onError(VKError error) {
+//                                Log.e(TAG, error.toString());
+//                                Otto.post(new NeedCloseFragmentEvent(ProgressDialogFragment.TAG));
+//                            }
+//                        });
                     }
                 })
-                .setNegativeButton(R.string.create_album_dialog_negative, new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.dialog_negative, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();

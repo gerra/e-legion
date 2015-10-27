@@ -70,12 +70,6 @@ public abstract class BaseAudiosFragment extends Fragment
         if (adapter == null) {
             initAdapter();
         }
-        if (onItemClickListener == null) {
-            initOnItemClickListener();
-        }
-        if (onScrollListener == null) {
-            initOnScrollListener();
-        }
     }
 
     @Override
@@ -115,6 +109,12 @@ public abstract class BaseAudiosFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
+        if (onItemClickListener == null) {
+            initOnItemClickListener();
+        }
+        if (onScrollListener == null) {
+            initOnScrollListener();
+        }
         if (onItemClickListener != null) {
             audioList.addOnItemTouchListener(onItemClickListener);
         }
@@ -155,7 +155,7 @@ public abstract class BaseAudiosFragment extends Fragment
     public Loader<Audio.AudioList> onCreateLoader(int id, Bundle args) {
         if (id == R.id.audios_loader) {
             Log.d(TAG, "onCreateLoader");
-            Album album = getAlbum();
+            final Album album = getAlbum();
             ModernAudiosLoader loader = new ModernAudiosLoader(TheApp.getApp(), album, new LoadingHelper() {
                 @Override
                 public void onStartLoading() {
@@ -166,6 +166,9 @@ public abstract class BaseAudiosFragment extends Fragment
                 public boolean needLoading() {
                     int adapterCount = adapter.getItemCount();
                     int totalCount = adapter.getAudios().getTotalCount();
+                    if (album.getTotalCount() > totalCount) {
+                        totalCount = album.getTotalCount();
+                    }
                     Log.d(TAG, "checkNeedLoading(): " + adapterCount + " " + totalCount);
                     Log.d(TAG, "checkNeedLoading(): " + (totalCount == -1 || adapterCount < totalCount));
                     return totalCount == -1 || adapterCount < totalCount;
