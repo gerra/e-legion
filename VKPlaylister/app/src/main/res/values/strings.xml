@@ -4,9 +4,9 @@
     <integer name="com_vk_sdk_AppId">5107012</integer>
 
     <plurals name="items_count">
-        <item quantity="many">%d items</item>
-        <item quantity="one">%d item</item>
-        <item quantity="few">%d items</item>
+        <item quantity="many">%d audios</item>
+        <item quantity="one">%d audio</item>
+        <item quantity="few">%d audios</item>
     </plurals>
 
     <string name="dialog_wait_title">Please wait...</string>

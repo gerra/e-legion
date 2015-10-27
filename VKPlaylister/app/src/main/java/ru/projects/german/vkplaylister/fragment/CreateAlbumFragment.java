@@ -17,7 +17,6 @@ import java.util.Set;
 
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.SmartOnQueryTextListener;
-import ru.projects.german.vkplaylister.adapter.SelectAudioAdapter;
 import ru.projects.german.vkplaylister.data.DataManager;
 import ru.projects.german.vkplaylister.loader.ModernAudiosLoader;
 import ru.projects.german.vkplaylister.model.Album;
@@ -112,11 +111,7 @@ public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackP
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.finish_selection) {
-            Set<Audio> selectedAudios = ((SelectAudioAdapter) adapter).getSelectedAudios();
-            onSelectionFinished(selectedAudios);
-            return true;
-        } else if (item.getItemId() == android.R.id.home) {
+        if (item.getItemId() == android.R.id.home) {
             onBackPressed();
             return true;
         }

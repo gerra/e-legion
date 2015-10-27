@@ -4,7 +4,7 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fab_margin">0dp</dimen>
 
-    <dimen name="corner_radius">4dp</dimen>
+    <dimen name="corner_radius">0dp</dimen>
 
     <dimen name="small_margin">5dp</dimen>
     <dimen name="standard_margin">10dp</dimen>
@@ -18,5 +18,5 @@
     <dimen name="audio_item_button_size">30dp</dimen>
     <dimen name="audio_item_button_padding_width">40dp</dimen>
 
-
+    <dimen name="album_item_size">240dp</dimen>
 </resources>

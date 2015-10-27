@@ -16,6 +16,7 @@ import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.Random;
 
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.data.DataManager;
@@ -60,7 +61,7 @@ public class PlayerService extends Service {
     private NotificationCompat.Action generateAction(int icon, String intentAction) {
         Intent intent = new Intent(getApplicationContext(), PlayerService.class);
         intent.setAction(intentAction);
-        PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 2323, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), new Random().nextInt(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return new NotificationCompat.Action.Builder(icon, "", pendingIntent)
                 .build();
     }

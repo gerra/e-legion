@@ -7,7 +7,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -73,16 +72,6 @@ public abstract class SelectAudiosFragment extends BaseAudiosFragment {
     protected abstract void onSelectionFinished(Set<Audio> selectedAudios);
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.finish_selection) {
-            Set<Audio> selectedAudios = ((SelectAudioAdapter) adapter).getSelectedAudios();
-            onSelectionFinished(selectedAudios);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.select_audios_menu, menu);
     }
@@ -90,6 +79,24 @@ public abstract class SelectAudiosFragment extends BaseAudiosFragment {
     @Override
     public CharSequence getTitle() {
         return getAlbumTitle();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        showSelectedAudiosButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Set<Audio> selectedAudios = ((SelectAudioAdapter) adapter).getSelectedAudios();
+                onSelectionFinished(selectedAudios);
+            }
+        });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        showSelectedAudiosButton.setOnClickListener(null);
     }
 }
 

@@ -150,7 +150,18 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
         addAlbumButton = (FloatingActionButton) view.findViewById(R.id.add_album_fab);
         albumList = (RecyclerView) view.findViewById(R.id.album_list);
         albumList.setLayoutManager(new GridLayoutManager(getActivity(), 2));
+//        albumList.setLayoutManager(new LinearLayoutManager(getActivity()));
         albumList.setAdapter(adapter);
+//        albumList.addItemDecoration(new RecyclerView.ItemDecoration() {
+//            @Override
+//            public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+//                int totalWidth = parent.getWidth();
+//                int maxCardWidth = getResources().getDimensionPixelOffset(R.dimen.album_item_size);
+//                int sidePadding = (totalWidth - maxCardWidth) / 2;
+//                sidePadding = Math.max(0, sidePadding);
+//                outRect.set(sidePadding, 0, sidePadding, 0);
+//            }
+//        });
         return view;
     }
 
