@@ -1,6 +1,7 @@
 package ru.projects.german.vkplaylister.fragment;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -177,16 +178,13 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
 //        albumList.setLayoutManager(new GridLayoutManager(getActivity(), 2));
         albumList.setLayoutManager(new LinearLayoutManager(getActivity()));
         albumList.setAdapter(adapter);
-//        albumList.addItemDecoration(new RecyclerView.ItemDecoration() {
-//            @Override
-//            public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-//                int totalWidth = parent.getWidth();
-//                int maxCardWidth = getResources().getDimensionPixelOffset(R.dimen.album_item_size);
-//                int sidePadding = (totalWidth - maxCardWidth) / 2;
-//                sidePadding = Math.max(0, sidePadding);
-//                outRect.set(sidePadding, 0, sidePadding, 0);
-//            }
-//        });
+        albumList.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+                int margin = getResources().getDimensionPixelOffset(R.dimen.extra_small_item_padding);
+                outRect.set(margin, margin, margin, 0);
+            }
+        });
         return view;
     }
 

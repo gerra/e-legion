@@ -126,7 +126,9 @@ public class PlayerHelper implements ServiceConnection {
         this.order = order;
         this.album = album;
         currentPlayPosition = positionToPlay;
-        play(order.get(positionToPlay));
+        if (currentPlayPosition < order.size()) {
+            play(order.get(positionToPlay));
+        }
     }
 
     public void playNext() {
@@ -135,7 +137,9 @@ public class PlayerHelper implements ServiceConnection {
         if (currentPlayPosition >= order.size()) {
             currentPlayPosition = 0;
         }
-        play(order.get(currentPlayPosition));
+        if (currentPlayPosition < order.size()) {
+            play(order.get(currentPlayPosition));
+        }
     }
 
     public void playPrev() {
@@ -143,7 +147,9 @@ public class PlayerHelper implements ServiceConnection {
         if (currentPlayPosition < 0) {
             currentPlayPosition = order.size() - 1;
         }
-        play(order.get(currentPlayPosition));
+        if (currentPlayPosition < order.size()) {
+            play(order.get(currentPlayPosition));
+        }
     }
 
     public void resume() {
@@ -191,14 +197,18 @@ public class PlayerHelper implements ServiceConnection {
     }
 
     private void onPlay() {
-        for (PlayerListener listener : listeners) {
-            listener.onPlay(album, order.get(currentPlayPosition));
+        if (currentPlayPosition < order.size()) {
+            for (PlayerListener listener : listeners) {
+                listener.onPlay(album, order.get(currentPlayPosition));
+            }
         }
     }
 
     private void onStop() {
-        for (PlayerListener listener : listeners) {
-            listener.onStop(album, order.get(currentPlayPosition));
+        if (currentPlayPosition < order.size()) {
+            for (PlayerListener listener : listeners) {
+                listener.onStop(album, order.get(currentPlayPosition));
+            }
         }
     }
 

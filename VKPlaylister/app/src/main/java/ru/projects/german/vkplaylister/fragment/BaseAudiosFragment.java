@@ -106,6 +106,13 @@ public abstract class BaseAudiosFragment extends Fragment
         audioList = (RecyclerView) view.findViewById(R.id.audio_list);
         audioList.setLayoutManager(new LinearLayoutManager(getActivity()));
         audioList.setAdapter(adapter);
+//        audioList.addItemDecoration(new RecyclerView.ItemDecoration() {
+//            @Override
+//            public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+//                int margin = getResources().getDimensionPixelOffset(R.dimen.extra_small_item_padding);
+//                outRect.set(margin, margin, margin, 0);
+//            }
+//        });
     }
 
     @Override
