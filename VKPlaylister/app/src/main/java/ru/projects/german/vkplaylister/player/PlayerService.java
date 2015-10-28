@@ -11,7 +11,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
@@ -173,12 +172,8 @@ public class PlayerService extends Service {
                     mediaPlayer.stop();
                 }
                 mediaPlayer.reset();
-//            String url = DataManager.getAudioUrl(currentAudio);
-                String url = currentAudio.getUrl();
-                while (url == null) {
-                    SystemClock.sleep(1200);
-                    url = DataManager.getAudioUrl(currentAudio);
-                }
+            String url = DataManager.getAudioUrl(currentAudio);
+//                String url = currentAudio.getUrl();
 
                 startForeground(1, buildNotification());
                 mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -192,7 +187,8 @@ public class PlayerService extends Service {
 
     private void play(Audio audio) {
         currentAudio = audio;
-        handler.post(playRunnable);
+        handler.removeCallbacks(playRunnable);
+        handler.postDelayed(playRunnable, 300);
     }
 
     private void playNext() {
@@ -216,7 +212,7 @@ public class PlayerService extends Service {
     }
 
     private void pause() {
-        if (mediaPlayer != null) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
             startForeground(1, buildNotification());
         }
@@ -226,7 +222,11 @@ public class PlayerService extends Service {
         if (mediaPlayer != null) {
             if (!mediaPlayer.isPlaying()) {
                 mediaPlayer.start();
-                startForeground(1, buildNotification());
+                if (!mediaPlayer.isPlaying()) {
+                    play(currentAudio);
+                } else {
+                    startForeground(1, buildNotification());
+                }
             }
         }
     }

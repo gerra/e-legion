@@ -42,9 +42,9 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> impl
         Album album = albums.get(position);
         holder.bindItem(album);
         if (album.equals(playingAlbum)) {
-            holder.stateIcon.setImageResource(R.drawable.ic_pause_white_24dp);
+            holder.stateIcon.setImageResource(R.drawable.ic_pause_black_48dp);
         } else {
-            holder.stateIcon.setImageResource(R.drawable.ic_play_arrow_white_24dp);
+            holder.stateIcon.setImageResource(R.drawable.ic_play_arrow_black_48dp);
         }
         holder.root.setOnClickListener(new View.OnClickListener() {
             @Override

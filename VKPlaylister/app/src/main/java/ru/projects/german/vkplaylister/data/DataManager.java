@@ -306,6 +306,7 @@ public class DataManager {
     }
 
     public static String getAudioUrl(Audio audio) {
+        Log.d(TAG, "getting audio url, audio=" + audio.toString());
         VKParameters params = new VKParameters();
         params.put(Constants.VK_AUDIOS, String.valueOf(audio.getOwnerId() + "_" + audio.getId()));
         VKRequest request = new VKRequest(Constants.VK_AUDIO_GET_BY_ID, params);
