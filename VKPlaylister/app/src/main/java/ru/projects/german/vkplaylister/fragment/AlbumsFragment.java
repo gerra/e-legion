@@ -8,7 +8,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -41,7 +41,6 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
 
     private RecyclerView albumList;
     private AlbumListAdapter adapter;
-    private RecyclerItemClickListener onItemClickListener;
     private FloatingActionButton addAlbumButton;
 
     public static AlbumsFragment newInstance() {
@@ -51,8 +50,9 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onStart() {
-        Otto.register(this);
         super.onStart();
+        Otto.register(this);
+        TheApp.getPlayerHelper().registerListener(adapter);
         getMainActivity().getSupportActionBar().show();
     }
 
@@ -60,6 +60,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
     public void onStop() {
         Otto.unregister(this);
         super.onStop();
+        TheApp.getPlayerHelper().unregisterListener(adapter);
     }
 
     @Override
@@ -69,9 +70,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
         if (adapter == null) {
             adapter = new AlbumListAdapter();
             adapter.addAlbums(DataManager.getAlbumList());
-        }
-        if (onItemClickListener == null) {
-            onItemClickListener = new RecyclerItemClickListener(TheApp.getApp(), new RecyclerItemClickListener.OnItemClickListener() {
+            adapter.setOnClickListener(new RecyclerItemClickListener.OnItemClickListener() {
                 @Override
                 public boolean onItemClick(View view, int position) {
                     Album album = adapter.getItem(position);
@@ -89,6 +88,25 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
                 }
             });
         }
+//        if (onItemClickListener == null) {
+//            onItemClickListener = new RecyclerItemClickListener(TheApp.getApp(), new RecyclerItemClickListener.OnItemClickListener() {
+//                @Override
+//                public boolean onItemClick(View view, int position) {
+//                    Album album = adapter.getItem(position);
+//                    Log.d(TAG, "Clicked album " + album.getTitle());
+//                    ((MainActivity) getActivity()).openFragment(
+//                            AlbumFragment.newInstance(album), true);
+//                    return true;
+//                }
+//
+//                @Override
+//                public boolean onItemLongPress(View view, int position) {
+//                    Album album = adapter.getItem(position);
+//                    Log.d(TAG, "Long press on album " + album.getTitle());
+//                    return true;
+//                }
+//            });
+//        }
         Otto.register(adapter);
 
         if (savedInstanceState == null) {
@@ -97,6 +115,13 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
                 fragment.show(getFragmentManager(), SyncWithVkDialogFragment.TAG);
             }
         }
+//        TheApp.getPlayerHelper().registerListener(adapter);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+//        TheApp.getPlayerHelper().unregisterListener(adapter);
     }
 
     @Override
@@ -116,7 +141,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onResume() {
         super.onResume();
-        albumList.addOnItemTouchListener(onItemClickListener);
+//        albumList.addOnItemTouchListener(onItemClickListener);
         addAlbumButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -133,7 +158,7 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onPause() {
         super.onPause();
-        albumList.removeOnItemTouchListener(onItemClickListener);
+//        albumList.removeOnItemTouchListener(onItemClickListener);
         addAlbumButton.setOnClickListener(null);
     }
 
@@ -149,8 +174,8 @@ public class AlbumsFragment extends Fragment implements LoaderManager.LoaderCall
         View view = inflater.inflate(R.layout.fragment_albums, container, false);
         addAlbumButton = (FloatingActionButton) view.findViewById(R.id.add_album_fab);
         albumList = (RecyclerView) view.findViewById(R.id.album_list);
-        albumList.setLayoutManager(new GridLayoutManager(getActivity(), 2));
-//        albumList.setLayoutManager(new LinearLayoutManager(getActivity()));
+//        albumList.setLayoutManager(new GridLayoutManager(getActivity(), 2));
+        albumList.setLayoutManager(new LinearLayoutManager(getActivity()));
         albumList.setAdapter(adapter);
 //        albumList.addItemDecoration(new RecyclerView.ItemDecoration() {
 //            @Override

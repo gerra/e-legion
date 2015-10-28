@@ -56,12 +56,21 @@ public class Audio implements Serializable {
     private String title;
     private int duration;
 
+    @Deprecated
+    private String url;
+
+    public String getUrl() {
+        return url;
+    }
+
     public Audio(VKApiAudio vkAudio) {
         id = vkAudio.id;
         ownerId = vkAudio.owner_id;
         artist = vkAudio.artist;
         title = vkAudio.title;
         duration = vkAudio.duration;
+        url = vkAudio.url;
+
     }
 
     public int getId() {

@@ -6,6 +6,7 @@
 
     <dimen name="corner_radius">0dp</dimen>
 
+    <dimen name="extra_small_margin">2dp</dimen>
     <dimen name="small_margin">5dp</dimen>
     <dimen name="standard_margin">10dp</dimen>
 

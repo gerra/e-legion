@@ -11,41 +11,73 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <ImageView
+        android:layout_height="wrap_content">
+
+        <FrameLayout
             android:layout_weight="1"
-            android:id="@+id/album_cover"
-            android:scaleType="centerCrop"
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/default_album_cover" />
+            android:layout_height="match_parent">
+            <ImageView
+                android:layout_weight="1"
+                android:id="@+id/album_cover"
+                android:scaleType="centerCrop"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/welcome_card" />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_gravity="bottom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="5dp"
+                android:layout_marginLeft="5dp">
+                <TextView
+                    style="?android:textColorPrimary"
+                    android:id="@+id/title"
+                    android:text="Blablabddsdsdsdddddddddddddddddddla"
+                    android:textSize="30sp"
+                    android:textColor="@color/vk_white"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
+
+                <TextView
+                    style="?android:textColorSecondary"
+                    android:id="@+id/itemCount"
+                    android:text="5 items"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom" />
+            </LinearLayout>
+        </FrameLayout>
 
         <LinearLayout
+            android:id="@+id/play_button"
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginRight="5dp"
-            android:layout_marginLeft="5dp">
-            <TextView
-                android:layout_weight="1"
-                android:id="@+id/title"
-                android:text="Blablabddsdsdsdddddddddddddddddddla"
-                android:textSize="30sp"
-                android:singleLine="true"
-                android:ellipsize="end"
-                style="?android:textColorPrimary"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/itemCount"
-                android:text="5 items"
-                style="?android:textColorSecondary"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/btn_drawable"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:id="@+id/state_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                />
+                android:src="@drawable/ic_pause_circle_filled_white_48dp"/>
+            <TextView
+                android:id="@+id/state_text"
+                android:textAppearance="@style/TextAppearance.Design.Tab"
+                android:textSize="20sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PLAY"
+                android:textColor="@color/vk_white"/>
         </LinearLayout>
     </LinearLayout>
 

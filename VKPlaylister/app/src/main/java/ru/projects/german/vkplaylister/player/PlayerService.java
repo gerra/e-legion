@@ -11,12 +11,12 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
 import java.io.IOException;
-import java.util.Random;
 
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.data.DataManager;
@@ -61,7 +61,17 @@ public class PlayerService extends Service {
     private NotificationCompat.Action generateAction(int icon, String intentAction) {
         Intent intent = new Intent(getApplicationContext(), PlayerService.class);
         intent.setAction(intentAction);
-        PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), new Random().nextInt(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int requestCode;
+        if (PlayerHelper.ACTION_PREV.equals(intentAction)) {
+            requestCode = 1001;
+        } else if (PlayerHelper.ACTION_PLAY_PAUSE.equals(intentAction)) {
+            requestCode = 1002;
+        } else if (PlayerHelper.ACTION_NEXT.equals(intentAction)) {
+            requestCode = 1003;
+        } else {
+            requestCode = 0;
+        }
+        PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return new NotificationCompat.Action.Builder(icon, "", pendingIntent)
                 .build();
     }
@@ -107,10 +117,17 @@ public class PlayerService extends Service {
                 } else {
                     resume();
                 }
+                try {
+                    playerHelper.send(Message.obtain(null, PlayerHelper.PLAY_PAUSE, mediaPlayer.isPlaying()));
+                } catch (RemoteException e) {
+                    Log.e(TAG, "Unable to send PLAY_PAUSE message: " + e.getMessage());
+                }
             }
         }
         return super.onStartCommand(intent, flags, startId);
     }
+
+    private boolean waitingAudio = true;
 
     private void initMediaSession() {
         mediaPlayer = new MediaPlayer();
@@ -119,58 +136,81 @@ public class PlayerService extends Service {
             public void onPrepared(MediaPlayer mp) {
                 mp.start();
                 startForeground(1, buildNotification());
+                waitingAudio = false;
             }
         });
         mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
             @Override
             public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                Log.d(TAG, "onBufferingUpdate(): " + percent);
+                if (percent != 100) {
+                    Log.d(TAG, "onBufferingUpdate(): " + percent);
+                }
             }
         });
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 Log.d(TAG, "onCompletion()");
-                mp.reset();
-                playNext();
+                if (!waitingAudio) {
+                    mp.reset();
+                    playNext();
+                }
+                waitingAudio = true;
             }
         });
     }
 
-    private void play(Audio audio) {
-        Log.d(TAG, "Play " + audio.toString());
-        currentAudio = audio;
-        try {
-            if (mediaPlayer == null) {
-                initMediaSession();
-            }
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();
-            }
-            mediaPlayer.reset();
-            String url = DataManager.getAudioUrl(audio);
+    private Runnable playRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "Play " + currentAudio.toString());
 
-            startForeground(1, buildNotification());
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setDataSource(url);
-            mediaPlayer.prepareAsync();
-        } catch (IOException e) {
-            e.printStackTrace();
+            try {
+                if (mediaPlayer == null) {
+                    initMediaSession();
+                }
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                }
+                mediaPlayer.reset();
+//            String url = DataManager.getAudioUrl(currentAudio);
+                String url = currentAudio.getUrl();
+                while (url == null) {
+                    SystemClock.sleep(1200);
+                    url = DataManager.getAudioUrl(currentAudio);
+                }
+
+                startForeground(1, buildNotification());
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                mediaPlayer.setDataSource(url);
+                mediaPlayer.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    };
+
+    private void play(Audio audio) {
+        currentAudio = audio;
+        handler.post(playRunnable);
     }
 
     private void playNext() {
         try {
+            waitingAudio = true;
             playerHelper.send(Message.obtain(null, PlayerHelper.PLAY_NEXT));
         } catch (RemoteException e) {
+            waitingAudio = false;
             Log.e(TAG, "Unable to send PLAY_NEXT message: " + e.getMessage());
         }
     }
 
     private void playPrev() {
         try {
+            waitingAudio = true;
             playerHelper.send(Message.obtain(null, PlayerHelper.PLAY_PREV));
         } catch (RemoteException e) {
+            waitingAudio = false;
             Log.e(TAG, "Unable to send PLAY_PREV message: " + e.getMessage());
         }
     }

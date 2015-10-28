@@ -109,7 +109,10 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         if (!addFragmentToBackStack) {
-            addFragmentToBackStack = fm.popBackStackImmediate();
+            if (fm.getBackStackEntryCount() > 0) {
+                fm.popBackStack();
+                addFragmentToBackStack = true;
+            }
         }
         if (addFragmentToBackStack) {
             ft.addToBackStack(null);

@@ -3,19 +3,16 @@ package ru.projects.german.vkplaylister.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
 
 import ru.projects.german.vkplaylister.R;
-import ru.projects.german.vkplaylister.adapter.AudioListAdapter;
+import ru.projects.german.vkplaylister.adapter.SimpleAudioListAdapter;
 import ru.projects.german.vkplaylister.data.DataManager;
 import ru.projects.german.vkplaylister.fragment.dialog.ProgressDialogFragment;
 import ru.projects.german.vkplaylister.model.Album;
@@ -43,19 +40,12 @@ public class AlbumFragment extends BaseAudiosFragment {
 
     @Override
     protected void initAdapter() {
-        adapter = new AudioListAdapter();
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_audios, container, false);
+        adapter = new SimpleAudioListAdapter();
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-//        getMainActivity().controller.show();
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -80,6 +70,7 @@ public class AlbumFragment extends BaseAudiosFragment {
                                 .beginTransaction()
                                 .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
                                 .commit();
+                        getMainActivity().closeCurrentFragment();
                     }
 
                     @Override
@@ -91,6 +82,7 @@ public class AlbumFragment extends BaseAudiosFragment {
                                 .beginTransaction()
                                 .remove(getFragmentManager().findFragmentByTag(ProgressDialogFragment.TAG))
                                 .commit();
+                        getMainActivity().closeCurrentFragment();
                     }
                 });
             } else {

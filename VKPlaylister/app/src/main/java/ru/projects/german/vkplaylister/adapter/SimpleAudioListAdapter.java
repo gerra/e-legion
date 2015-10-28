@@ -11,8 +11,8 @@ import ru.projects.german.vkplaylister.adapter.viewholder.BaseAudioViewHolder;
 /**
  * Created by root on 15.10.15.
  */
-public class AudioListAdapter extends BaseAudioListAdapter {
-    private static final String TAG = AudioListAdapter.class.getSimpleName();
+public class SimpleAudioListAdapter extends BaseAudioListAdapter {
+    private static final String TAG = SimpleAudioListAdapter.class.getSimpleName();
 
 
     @Override

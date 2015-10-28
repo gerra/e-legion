@@ -46,7 +46,7 @@ public class RecyclerItemClickListener implements RecyclerView.OnItemTouchListen
             lastPosition = rv.getChildAdapterPosition(lastChildView);
         }
         if (lastChildView != null && listener != null) {
-            return gestureDetector.onTouchEvent(e);
+            gestureDetector.onTouchEvent(e);
         }
         return false;
     }

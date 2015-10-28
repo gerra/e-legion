@@ -70,6 +70,11 @@ public abstract class BaseAudiosFragment extends Fragment
         if (adapter == null) {
             initAdapter();
         }
+        Album album = getAlbum();
+        if (album != null) {
+            updateAudiosInAdapter(album.getAudios());
+            adapter.setAlbum(album);
+        }
     }
 
     @Override
@@ -77,14 +82,11 @@ public abstract class BaseAudiosFragment extends Fragment
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "AudioListLoader in lm: " + (getLoaderManager().getLoader(R.id.audios_loader) != null));
         Bundle args = getArguments();
-        Album album = getAlbum();
         boolean isJustCreated = false;
         if (args != null) {
             isJustCreated = args.getBoolean(ALBUM_IS_JUST_CREATED_KEY, false);
         }
-        if (album != null) {
-            updateAudiosInAdapter(album.getAudios());
-        }
+        Album album = getAlbum();
         if ((album == null || album.isSynchronizedWithVk()) && !isJustCreated) {
             if (getLoaderManager().getLoader(R.id.audios_loader) == null) {
                 getLoaderManager().initLoader(R.id.audios_loader, getArguments(), this);
@@ -205,5 +207,17 @@ public abstract class BaseAudiosFragment extends Fragment
             return (Album) getArguments().getSerializable(ALBUM_KEY);
         }
         return null;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        TheApp.getPlayerHelper().registerListener(adapter);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        TheApp.getPlayerHelper().unregisterListener(adapter);
     }
 }

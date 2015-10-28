@@ -11,19 +11,28 @@ import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.adapter.viewholder.BaseAudioViewHolder;
 import ru.projects.german.vkplaylister.adapter.viewholder.ProgressViewHolder;
+import ru.projects.german.vkplaylister.model.Album;
 import ru.projects.german.vkplaylister.model.Audio;
+import ru.projects.german.vkplaylister.player.PlayerHelper;
 
 /**
  * Created on 22.10.15.
  *
  * @author German Berezhko, gerralizza@gmail.com
  */
-public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements PlayerHelper.PlayerListener {
     private static final String TAG = BaseAudioListAdapter.class.getSimpleName();
     protected static final int AUDIO_TYPE = 1;
     protected static final int LOADING_TYPE = 2;
 
     protected Audio.AudioList audios = new Audio.AudioList();
+    protected Album album = null;
+
+    private Audio currentPlayingAudio = null;
+
+    public void setAlbum(Album album) {
+        this.album = album;
+    }
 
     protected abstract BaseAudioViewHolder getAudioViewHolder(ViewGroup parent);
 
@@ -70,17 +79,19 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<Recycler
                             } else {
                                 TheApp.getPlayerHelper().resume();
                             }
-                            notifyItemChanged(position);
+//                            notifyItemChanged(position);
                         } else {
-                            TheApp.getPlayerHelper().play(audios, position);
-                            notifyItemChanged(position);
+//                            TheApp.getPlayerHelper().setAlbum(album);
+                            TheApp.getPlayerHelper().play(audios, position, album);
+//                            notifyItemChanged(position);
                             if (TheApp.getPlayerHelper().isPlaying()) {
-                                notifyItemChanged(currentAudioPosition);
+//                                notifyItemChanged(currentAudioPosition);
                             }
                         }
                     } else {
-                        TheApp.getPlayerHelper().play(audios, position);
-                        notifyItemChanged(position);
+//                        TheApp.getPlayerHelper().setAlbum(album);
+                        TheApp.getPlayerHelper().play(audios, position, album);
+//                        notifyItemChanged(position);
                     }
                 }
             });
@@ -145,5 +156,28 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<Recycler
         int oldSize = audios.size();
         audios.clear();
         notifyItemRangeRemoved(0, oldSize);
+    }
+
+    @Override
+    public void onPlay(Album album, Audio audio) {
+        int oldPosition = audios.indexOf(currentPlayingAudio);
+        int newPosition = audios.indexOf(audio);
+        currentPlayingAudio = audio;
+        if (oldPosition != -1) {
+            notifyItemChanged(oldPosition);
+        }
+        if (oldPosition != newPosition) {
+            if (newPosition != -1) {
+                notifyItemChanged(newPosition);
+            }
+        }
+    }
+
+    @Override
+    public void onStop(Album album, Audio audio) {
+        int position = audios.indexOf(audio);
+        if (position != -1) {
+            notifyItemChanged(position);
+        }
     }
 }

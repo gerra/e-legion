@@ -9,21 +9,27 @@ import android.view.ViewGroup;
 import com.squareup.otto.Subscribe;
 
 import ru.projects.german.vkplaylister.R;
+import ru.projects.german.vkplaylister.TheApp;
 import ru.projects.german.vkplaylister.adapter.viewholder.AlbumViewHolder;
 import ru.projects.german.vkplaylister.model.Album;
+import ru.projects.german.vkplaylister.model.Audio;
 import ru.projects.german.vkplaylister.otto.AlbumChangedEvent;
 import ru.projects.german.vkplaylister.otto.AlbumCreatedEvent;
 import ru.projects.german.vkplaylister.otto.AlbumDeletedEvent;
+import ru.projects.german.vkplaylister.player.PlayerHelper;
 
 /**
  * Created on 17.10.15.
  *
  * @author German Berezhko, gerralizza@gmail.com
  */
-public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
+public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> implements PlayerHelper.PlayerListener {
     private static final String TAG = AlbumListAdapter.class.getSimpleName();
 
     private Album.AlbumList albums = new Album.AlbumList();
+    private RecyclerItemClickListener.OnItemClickListener onClickListener;
+
+    private Album playingAlbum;
 
     @Override
     public AlbumViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -32,8 +38,37 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(AlbumViewHolder holder, int position) {
-        holder.bindItem(albums.get(position));
+    public void onBindViewHolder(final AlbumViewHolder holder, final int position) {
+        Album album = albums.get(position);
+        holder.bindItem(album);
+        if (album.equals(playingAlbum)) {
+            holder.stateIcon.setImageResource(R.drawable.ic_pause_white_24dp);
+        } else {
+            holder.stateIcon.setImageResource(R.drawable.ic_play_arrow_white_24dp);
+        }
+        holder.root.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickListener.onItemClick(v, position);
+            }
+        });
+        holder.root.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return onClickListener.onItemLongPress(v, position);
+            }
+        });
+        holder.playButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Album album = getItem(position);
+                if (album.equals(playingAlbum)) {
+                    TheApp.getPlayerHelper().pause();
+                } else {
+                    TheApp.getPlayerHelper().play(album);
+                }
+            }
+        });
     }
 
     @Override
@@ -93,5 +128,53 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
                 break;
             }
         }
+    }
+
+    @Override
+    public void onPlay(Album album, Audio audio) {
+        if (album == null) {
+            int position = albums.indexOf(playingAlbum);
+            playingAlbum = null;
+            if (position != -1) {
+                notifyItemChanged(position);
+            }
+            return;
+        } else {
+            int currentPosition = albums.indexOf(album);
+            int oldPosition = albums.indexOf(playingAlbum);
+            playingAlbum = album;
+            if (oldPosition != -1) {
+                notifyItemChanged(oldPosition);
+            }
+            if (currentPosition != -1 && currentPosition != oldPosition) {
+                notifyItemChanged(currentPosition);
+            }
+        }
+    }
+
+    @Override
+    public void onStop(Album album, Audio audio) {
+        if (album == null) {
+            int position = albums.findAlbumPosition(playingAlbum);
+            playingAlbum = null;
+            if (position != -1) {
+                notifyItemChanged(position);
+            }
+            return;
+        } else {
+            int currentPosition = albums.indexOf(album);
+            int oldPosition = albums.indexOf(playingAlbum);
+            playingAlbum = null;
+            if (oldPosition != -1) {
+                notifyItemChanged(oldPosition);
+            }
+            if (currentPosition != -1 && currentPosition != oldPosition) {
+                notifyItemChanged(currentPosition);
+            }
+        }
+    }
+
+    public void setOnClickListener(RecyclerItemClickListener.OnItemClickListener onClickListener) {
+        this.onClickListener = onClickListener;
     }
 }

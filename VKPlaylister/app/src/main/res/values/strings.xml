@@ -21,4 +21,6 @@
     <string name="sync_with_vk_dialog_message">Do you want get your VK albums?</string>
     <string name="sync_with_vk_dialog_running">Synchronization is running...</string>
 
+    <string name="player_play">PLAY</string>
+    <string name="player_pause">PLAY</string>
 </resources>

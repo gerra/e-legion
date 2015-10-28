@@ -11,6 +11,10 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import ru.projects.german.vkplaylister.model.Album;
 import ru.projects.german.vkplaylister.model.Audio;
 
 /**
@@ -21,14 +25,15 @@ import ru.projects.german.vkplaylister.model.Audio;
 public class PlayerHelper implements ServiceConnection {
     private static final String TAG = PlayerHelper.class.getSimpleName();
 
-    public static final int REGISTER_HELPER = 5;
-
     public static final int PLAY_MESSAGE   = 1;
     public static final int RESUME_MESSAGE = 2;
     public static final int PAUSE_MESSAGE  = 3;
     public static final int STOP_MESSAGE   = 4;
     public static final int PLAY_NEXT      = 5;
     public static final int PLAY_PREV      = 6;
+    public static final int PLAY_PAUSE     = 7;
+
+    public static final int REGISTER_HELPER = 8;
 
     public static final String ACTION_PLAY_PAUSE = "ACTION_PLAY_PAUSE";
     public static final String ACTION_PREV = "ACTION_PREV";
@@ -48,6 +53,17 @@ public class PlayerHelper implements ServiceConnection {
                 case PLAY_PREV:
                     playPrev();
                     break;
+                case PLAY_PAUSE:
+                    boolean oldState = isPlaying;
+                    isPlaying = (boolean) msg.obj;
+                    if (oldState != isPlaying) {
+                        if (isPlaying) {
+                            onPlay();
+                        } else {
+                            onStop();
+                        }
+                    }
+                    break;
                 default:
                     Log.e(TAG, "Unexpected message: " + msg.toString());
             }
@@ -61,6 +77,7 @@ public class PlayerHelper implements ServiceConnection {
 
     private int currentPlayPosition;
     private Audio.AudioList order;
+    private Album album;
     private boolean isPlaying;
 
     private void bindService() {
@@ -88,21 +105,32 @@ public class PlayerHelper implements ServiceConnection {
     }
 
     private void play(Audio audio) {
-        isPlaying = true;
         try {
             mService.send(Message.obtain(null, PLAY_MESSAGE, audio));
+            isPlaying = true;
+            onPlay();
         } catch (RemoteException e) {
             Log.e(TAG, "Unable to send play message to service, " + e.getMessage());
         }
     }
 
-    public void play(Audio.AudioList order, int positionToPlay) {
+    public void play(Album album) {
+        if (album.equals(this.album)) {
+            resume();
+        } else {
+            play(album.getAudios(), 0, album);
+        }
+    }
+
+    public void play(Audio.AudioList order, int positionToPlay, Album album) {
         this.order = order;
+        this.album = album;
         currentPlayPosition = positionToPlay;
         play(order.get(positionToPlay));
     }
 
     public void playNext() {
+        Log.d(TAG, "playNext()");
         currentPlayPosition++;
         if (currentPlayPosition >= order.size()) {
             currentPlayPosition = 0;
@@ -119,18 +147,20 @@ public class PlayerHelper implements ServiceConnection {
     }
 
     public void resume() {
-        isPlaying = true;
         try {
             mService.send(Message.obtain(null, RESUME_MESSAGE));
+            isPlaying = true;
+            onPlay();
         } catch (RemoteException e) {
             Log.e(TAG, "Unable to send resume message to service, " + e.getMessage());
         }
     }
 
     public void pause() {
-        isPlaying = false;
         try {
             mService.send(Message.obtain(null, PAUSE_MESSAGE));
+            isPlaying = false;
+            onStop();
         } catch (RemoteException e) {
             Log.e(TAG, "Unable to send pause message to service, " + e.getMessage());
         }
@@ -158,5 +188,42 @@ public class PlayerHelper implements ServiceConnection {
 
     public boolean isPlaying() {
         return isPlaying;
+    }
+
+    private void onPlay() {
+        for (PlayerListener listener : listeners) {
+            listener.onPlay(album, order.get(currentPlayPosition));
+        }
+    }
+
+    private void onStop() {
+        for (PlayerListener listener : listeners) {
+            listener.onStop(album, order.get(currentPlayPosition));
+        }
+    }
+
+    public void setAlbum(Album album) {
+        this.album = album;
+    }
+
+    public interface PlayerListener {
+        void onPlay(Album album, Audio audio);
+        void onStop(Album album, Audio audio);
+    }
+
+    private List<PlayerListener> listeners = new ArrayList<>();
+
+    public void registerListener(PlayerListener listener) {
+        listeners.add(listener);
+        if (isPlaying && order != null && order.get(currentPlayPosition) != null) {
+            listener.onPlay(album, order.get(currentPlayPosition));
+        }
+        if (!isPlaying && order != null && order.get(currentPlayPosition) != null) {
+            listener.onStop(album, order.get(currentPlayPosition));
+        }
+    }
+
+    public void unregisterListener(PlayerListener listener) {
+        listeners.remove(listener);
     }
 }

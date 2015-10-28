@@ -12,12 +12,18 @@ public class AlbumViewHolder extends BinderViewHolder<Album> {
     private TextView title;
     private TextView audioCount;
     private ImageView syncWithVk;
+    public View playButton;
+    public TextView stateText;
+    public ImageView stateIcon;
 
     public AlbumViewHolder(View itemView) {
         super(itemView);
         title = (TextView) itemView.findViewById(R.id.title);
         audioCount = (TextView) itemView.findViewById(R.id.itemCount);
         syncWithVk = (ImageView) itemView.findViewById(R.id.sync_with_vk);
+        playButton = itemView.findViewById(R.id.play_button);
+        stateText = (TextView) itemView.findViewById(R.id.state_text);
+        stateIcon = (ImageView) itemView.findViewById(R.id.state_icon);
     }
 
     @Override
