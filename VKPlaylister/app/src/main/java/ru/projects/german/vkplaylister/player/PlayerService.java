@@ -18,6 +18,7 @@ import android.util.Log;
 import java.io.IOException;
 
 import ru.projects.german.vkplaylister.R;
+import ru.projects.german.vkplaylister.activity.MainActivity;
 import ru.projects.german.vkplaylister.data.DataManager;
 import ru.projects.german.vkplaylister.model.Audio;
 
@@ -26,6 +27,12 @@ import ru.projects.german.vkplaylister.model.Audio;
  */
 public class PlayerService extends Service {
     private static final String TAG = PlayerService.class.getSimpleName();
+
+    private static final int PREV_ACTION_REQUEST_CODE = 1001;
+    private static final int PLAY_PAUSE_ACTION_REQUEST_CODE = 1002;
+    private static final int NEXT_ACTION_REQUEST_CODE = 1003;
+    private static final int OPEN_CONTENT_REQUEST_CODE = 1004;
+    private static final int CLOSE_REQUEST_CODE = 1005;
 
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -62,11 +69,11 @@ public class PlayerService extends Service {
         intent.setAction(intentAction);
         int requestCode;
         if (PlayerHelper.ACTION_PREV.equals(intentAction)) {
-            requestCode = 1001;
+            requestCode = PREV_ACTION_REQUEST_CODE;
         } else if (PlayerHelper.ACTION_PLAY_PAUSE.equals(intentAction)) {
-            requestCode = 1002;
+            requestCode = PLAY_PAUSE_ACTION_REQUEST_CODE;
         } else if (PlayerHelper.ACTION_NEXT.equals(intentAction)) {
-            requestCode = 1003;
+            requestCode = NEXT_ACTION_REQUEST_CODE;
         } else {
             requestCode = 0;
         }
@@ -80,6 +87,11 @@ public class PlayerService extends Service {
             notificationBuilder = new NotificationCompat.Builder(this);
             NotificationCompat.MediaStyle style = new NotificationCompat.MediaStyle();
             style.setShowActionsInCompactView(0, 1, 2);
+            Intent openActivityIntent = new Intent(this, MainActivity.class);
+            openActivityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            // TODO: open album
+            PendingIntent openActivityPendingIntent = PendingIntent.getActivity(
+                    this, OPEN_CONTENT_REQUEST_CODE, openActivityIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             notificationBuilder.setStyle(style)
                     .setSmallIcon(R.drawable.ic_play_circle_filled_white_48dp)
                     .setShowWhen(false)
@@ -87,7 +99,8 @@ public class PlayerService extends Service {
                     .addAction(generateAction(android.R.drawable.ic_media_play, PlayerHelper.ACTION_PLAY_PAUSE))
                     .addAction(generateAction(android.R.drawable.ic_media_next, PlayerHelper.ACTION_NEXT))
                     .setContentTitle("")
-                    .setContentText("");
+                    .setContentText("")
+                    .setContentIntent(openActivityPendingIntent);
         }
 
         if (!notificationBuilder.mContentTitle.equals(currentAudio.getTitle())) {
@@ -172,13 +185,14 @@ public class PlayerService extends Service {
                     mediaPlayer.stop();
                 }
                 mediaPlayer.reset();
-            String url = DataManager.getAudioUrl(currentAudio);
+                String url = DataManager.getAudioUrl(currentAudio);
 //                String url = currentAudio.getUrl();
-
-                startForeground(1, buildNotification());
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                mediaPlayer.setDataSource(url);
-                mediaPlayer.prepareAsync();
+                if (url != null) {
+                    startForeground(1, buildNotification());
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    mediaPlayer.setDataSource(url);
+                    mediaPlayer.prepareAsync();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
