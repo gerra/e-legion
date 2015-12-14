@@ -305,6 +305,31 @@ public class DataManager {
         request.executeWithListener(listener);
     }
 
+    public static void getAudioUrl(Audio audio, final MyRequestListener listener) {
+        Log.d(TAG, "getting audio url(async), audio=" + audio.toString());
+        VKParameters params = new VKParameters();
+        params.put(Constants.VK_AUDIOS, String.valueOf(audio.getOwnerId() + "_" + audio.getId()));
+        VKRequest request = new VKRequest(Constants.VK_AUDIO_GET_BY_ID, params);
+        request.executeWithListener(new VKRequest.VKRequestListener() {
+            @Override
+            public void onComplete(VKResponse response) {
+                try {
+                    String url = response.json.getJSONArray("response").getJSONObject(0).getString("url");
+                    listener.onComplete(url);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    listener.onError("Parsing error");
+                }
+            }
+
+            @Override
+            public void onError(VKError error) {
+                Log.e(TAG, error + error.toString());
+                listener.onError(error.toString());
+            }
+        });
+    }
+
     public static String getAudioUrl(Audio audio) {
         Log.d(TAG, "getting audio url, audio=" + audio.toString());
         VKParameters params = new VKParameters();

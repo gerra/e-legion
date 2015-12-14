@@ -160,6 +160,9 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<Recycler
 
     @Override
     public void onPlay(Album album, Audio audio) {
+        if (audio == null) {
+            return;
+        }
         int oldPosition = audios.indexOf(currentPlayingAudio);
         int newPosition = audios.indexOf(audio);
         currentPlayingAudio = audio;
@@ -175,6 +178,9 @@ public abstract class BaseAudioListAdapter extends RecyclerView.Adapter<Recycler
 
     @Override
     public void onStop(Album album, Audio audio) {
+        if (audio == null) {
+            return;
+        }
         int position = audios.indexOf(audio);
         if (position != -1) {
             notifyItemChanged(position);

@@ -1,6 +1,7 @@
 package ru.projects.german.vkplaylister.activity;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -16,6 +17,7 @@ import com.vk.sdk.VKCallback;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.VKError;
 
+import ru.projects.german.vkplaylister.BuildConfig;
 import ru.projects.german.vkplaylister.R;
 import ru.projects.german.vkplaylister.fragment.AlbumsFragment;
 import ru.projects.german.vkplaylister.fragment.AuthorizeFragment;
@@ -103,6 +105,11 @@ public class MainActivity extends AppCompatActivity {
     public void closeCurrentFragment() {
         getSupportFragmentManager().popBackStackImmediate();
         updateTitle();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
 
     public void openFragment(Fragment fragment, boolean addFragmentToBackStack) {

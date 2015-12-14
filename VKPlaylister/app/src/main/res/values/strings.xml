@@ -7,6 +7,8 @@
         <item quantity="many">%d audios</item>
         <item quantity="one">%d audio</item>
         <item quantity="few">%d audios</item>
+        <item quantity="other">%d audios</item>
+        <item quantity="two">%d audios</item>
     </plurals>
 
     <string name="dialog_wait_title">Please wait...</string>

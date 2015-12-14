@@ -149,7 +149,7 @@ public class CreateAlbumFragment extends SelectAudiosFragment implements OnBackP
         searchItem = menu.findItem(R.id.search_audios);
         searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
 
-        searchView.setOnQueryTextListener(new SmartOnQueryTextListener(3, 1000, new SmartOnQueryTextListener.OnReadyListener() {
+        searchView.setOnQueryTextListener(new SmartOnQueryTextListener(0, 1000, new SmartOnQueryTextListener.OnReadyListener() {
             @Override
             public void onReady(String text) {
                 Log.d(TAG, "Search text listener, onReady(), text=" + text);

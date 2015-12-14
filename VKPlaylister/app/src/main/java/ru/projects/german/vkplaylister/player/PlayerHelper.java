@@ -91,7 +91,7 @@ public class PlayerHelper implements ServiceConnection {
     }
 
     public Audio getCurrentAudio() {
-        if (order != null) {
+        if (order != null && currentPlayPosition < order.size()) {
             return order.get(currentPlayPosition);
         }
         return null;
@@ -105,6 +105,9 @@ public class PlayerHelper implements ServiceConnection {
     }
 
     private void play(Audio audio) {
+        if (audio == null) {
+            return;
+        }
         try {
             mService.send(Message.obtain(null, PLAY_MESSAGE, audio));
             isPlaying = true;
@@ -137,9 +140,7 @@ public class PlayerHelper implements ServiceConnection {
         if (currentPlayPosition >= order.size()) {
             currentPlayPosition = 0;
         }
-        if (currentPlayPosition < order.size()) {
-            play(order.get(currentPlayPosition));
-        }
+        play(getCurrentAudio());
     }
 
     public void playPrev() {
@@ -147,9 +148,7 @@ public class PlayerHelper implements ServiceConnection {
         if (currentPlayPosition < 0) {
             currentPlayPosition = order.size() - 1;
         }
-        if (currentPlayPosition < order.size()) {
-            play(order.get(currentPlayPosition));
-        }
+        play(getCurrentAudio());
     }
 
     public void resume() {
@@ -199,7 +198,7 @@ public class PlayerHelper implements ServiceConnection {
     private void onPlay() {
         if (currentPlayPosition < order.size()) {
             for (PlayerListener listener : listeners) {
-                listener.onPlay(album, order.get(currentPlayPosition));
+                listener.onPlay(album, getCurrentAudio());
             }
         }
     }
@@ -207,7 +206,7 @@ public class PlayerHelper implements ServiceConnection {
     private void onStop() {
         if (currentPlayPosition < order.size()) {
             for (PlayerListener listener : listeners) {
-                listener.onStop(album, order.get(currentPlayPosition));
+                listener.onStop(album, getCurrentAudio());
             }
         }
     }
@@ -225,11 +224,11 @@ public class PlayerHelper implements ServiceConnection {
 
     public void registerListener(PlayerListener listener) {
         listeners.add(listener);
-        if (isPlaying && order != null && order.get(currentPlayPosition) != null) {
-            listener.onPlay(album, order.get(currentPlayPosition));
+        if (isPlaying && order != null && getCurrentAudio() != null) {
+            listener.onPlay(album, getCurrentAudio());
         }
-        if (!isPlaying && order != null && order.get(currentPlayPosition) != null) {
-            listener.onStop(album, order.get(currentPlayPosition));
+        if (!isPlaying && order != null && getCurrentAudio() != null) {
+            listener.onStop(album, getCurrentAudio());
         }
     }
 

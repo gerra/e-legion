@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
@@ -177,25 +178,37 @@ public class PlayerService extends Service {
         public void run() {
             Log.d(TAG, "Play " + currentAudio.toString());
 
-            try {
-                if (mediaPlayer == null) {
-                    initMediaSession();
+            if (mediaPlayer == null) {
+                initMediaSession();
+            }
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
+
+            DataManager.getAudioUrl(currentAudio, new DataManager.MyRequestListener() {
+                @Override
+                public void onComplete(Object object) {
+                    try {
+                        String url = (String) object;
+                        startForeground(1, buildNotification());
+                        mediaPlayer.reset();
+                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                        mediaPlayer.setDataSource(url);
+                        mediaPlayer.prepareAsync();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-                if (mediaPlayer.isPlaying()) {
-                    mediaPlayer.stop();
-                }
-                mediaPlayer.reset();
-                String url = DataManager.getAudioUrl(currentAudio);
+            });
+
+                /*String url = DataManager.getAudioUrl(currentAudio);
 //                String url = currentAudio.getUrl();
                 if (url != null) {
                     startForeground(1, buildNotification());
                     mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     mediaPlayer.setDataSource(url);
                     mediaPlayer.prepareAsync();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                }*/
         }
     };
 

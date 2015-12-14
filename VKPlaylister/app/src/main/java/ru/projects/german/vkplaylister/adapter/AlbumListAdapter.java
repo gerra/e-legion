@@ -132,6 +132,9 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> impl
 
     @Override
     public void onPlay(Album album, Audio audio) {
+        if (audio == null) {
+            return;
+        }
         if (album == null) {
             int position = albums.indexOf(playingAlbum);
             playingAlbum = null;
@@ -154,6 +157,9 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumViewHolder> impl
 
     @Override
     public void onStop(Album album, Audio audio) {
+        if (audio == null) {
+            return;
+        }
         if (album == null) {
             int position = albums.findAlbumPosition(playingAlbum);
             playingAlbum = null;
